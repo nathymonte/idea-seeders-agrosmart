@@ -1,6 +1,6 @@
 {
   "meta": {
-    "generated_at": "2026-03-01T01:17:51.512957+00:00",
+    "generated_at": "2026-03-02T23:56:07.301329+00:00",
     "model_file": "keras_model.h5",
     "labels_file": "labels.txt",
     "image_size": 224,
@@ -15,120 +15,180 @@
       "image_name": "health 1.jpg",
       "image_path": "health 1.jpg",
       "predicted_label": "Health",
+      "predicted_label_pt": "Saudavel",
       "confidence": 0.9966991543769836,
       "scores": {
         "Health": 0.9966991543769836,
         "Sick": 0.003300796262919903
+      },
+      "scores_pt": {
+        "Saudavel": 0.9966991543769836,
+        "Doente": 0.003300796262919903
       }
     },
     {
       "image_name": "health 2.jpg",
       "image_path": "health 2.jpg",
       "predicted_label": "Health",
+      "predicted_label_pt": "Saudavel",
       "confidence": 0.9881763458251953,
       "scores": {
         "Health": 0.9881763458251953,
         "Sick": 0.011823736131191254
+      },
+      "scores_pt": {
+        "Saudavel": 0.9881763458251953,
+        "Doente": 0.011823736131191254
       }
     },
     {
       "image_name": "health 3.jpg",
       "image_path": "health 3.jpg",
       "predicted_label": "Health",
+      "predicted_label_pt": "Saudavel",
       "confidence": 0.9999959468841553,
       "scores": {
         "Health": 0.9999959468841553,
         "Sick": 3.994352482550312e-06
+      },
+      "scores_pt": {
+        "Saudavel": 0.9999959468841553,
+        "Doente": 3.994352482550312e-06
       }
     },
     {
       "image_name": "health 4.jpg",
       "image_path": "health 4.jpg",
       "predicted_label": "Health",
+      "predicted_label_pt": "Saudavel",
       "confidence": 0.816801130771637,
       "scores": {
         "Health": 0.816801130771637,
         "Sick": 0.18319883942604065
+      },
+      "scores_pt": {
+        "Saudavel": 0.816801130771637,
+        "Doente": 0.18319883942604065
       }
     },
     {
       "image_name": "health 5.jpg",
       "image_path": "health 5.jpg",
       "predicted_label": "Health",
+      "predicted_label_pt": "Saudavel",
       "confidence": 0.8961175084114075,
       "scores": {
         "Health": 0.8961175084114075,
         "Sick": 0.10388252139091492
+      },
+      "scores_pt": {
+        "Saudavel": 0.8961175084114075,
+        "Doente": 0.10388252139091492
       }
     },
     {
       "image_name": "health 6.jpg",
       "image_path": "health 6.jpg",
       "predicted_label": "Sick",
+      "predicted_label_pt": "Doente",
       "confidence": 0.9864059090614319,
       "scores": {
         "Health": 0.013594119809567928,
         "Sick": 0.9864059090614319
+      },
+      "scores_pt": {
+        "Saudavel": 0.013594119809567928,
+        "Doente": 0.9864059090614319
       }
     },
     {
       "image_name": "sick 1.jpg",
       "image_path": "sick 1.jpg",
       "predicted_label": "Sick",
+      "predicted_label_pt": "Doente",
       "confidence": 0.9796608090400696,
       "scores": {
         "Health": 0.02033921517431736,
         "Sick": 0.9796608090400696
+      },
+      "scores_pt": {
+        "Saudavel": 0.02033921517431736,
+        "Doente": 0.9796608090400696
       }
     },
     {
       "image_name": "sick 2.jpg",
       "image_path": "sick 2.jpg",
       "predicted_label": "Sick",
+      "predicted_label_pt": "Doente",
       "confidence": 0.9999175071716309,
       "scores": {
         "Health": 8.251180406659842e-05,
         "Sick": 0.9999175071716309
+      },
+      "scores_pt": {
+        "Saudavel": 8.251180406659842e-05,
+        "Doente": 0.9999175071716309
       }
     },
     {
       "image_name": "sick 3.jpg",
       "image_path": "sick 3.jpg",
       "predicted_label": "Sick",
+      "predicted_label_pt": "Doente",
       "confidence": 0.9999833106994629,
       "scores": {
         "Health": 1.6685882656020112e-05,
         "Sick": 0.9999833106994629
+      },
+      "scores_pt": {
+        "Saudavel": 1.6685882656020112e-05,
+        "Doente": 0.9999833106994629
       }
     },
     {
       "image_name": "sick 4.jpg",
       "image_path": "sick 4.jpg",
       "predicted_label": "Sick",
+      "predicted_label_pt": "Doente",
       "confidence": 0.999988317489624,
       "scores": {
         "Health": 1.1651593922579195e-05,
         "Sick": 0.999988317489624
+      },
+      "scores_pt": {
+        "Saudavel": 1.1651593922579195e-05,
+        "Doente": 0.999988317489624
       }
     },
     {
       "image_name": "sick 5.jpg",
       "image_path": "sick 5.jpg",
       "predicted_label": "Sick",
+      "predicted_label_pt": "Doente",
       "confidence": 0.9999077320098877,
       "scores": {
         "Health": 9.227619011653587e-05,
         "Sick": 0.9999077320098877
+      },
+      "scores_pt": {
+        "Saudavel": 9.227619011653587e-05,
+        "Doente": 0.9999077320098877
       }
     },
     {
       "image_name": "sick 6.jpg",
       "image_path": "sick 6.jpg",
       "predicted_label": "Sick",
+      "predicted_label_pt": "Doente",
       "confidence": 0.9999957084655762,
       "scores": {
         "Health": 4.27371060141013e-06,
         "Sick": 0.9999957084655762
+      },
+      "scores_pt": {
+        "Saudavel": 4.27371060141013e-06,
+        "Doente": 0.9999957084655762
       }
     }
   ]

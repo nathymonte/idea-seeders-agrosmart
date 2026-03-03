@@ -1,6 +1,5 @@
 import argparse
 import json
-import os
 from datetime import datetime, timezone
 from pathlib import Path
 import tensorflow as tf
@@ -15,19 +14,12 @@ ALLOWED_EXTS = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
 
 
 def load_labels(labels_path: Path) -> list[str]:
-    """
-    Teachable Machine geralmente exporta labels em linhas tipo:
-    '0 saudavel'
-    '1 doente'
-    Vamos extrair apenas o nome, mantendo a ordem.
-    """
     labels: list[str] = []
     with labels_path.open("r", encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if not line:
                 continue
-            # aceita tanto "0 label" quanto só "label"
             parts = line.split(maxsplit=1)
             label = parts[1] if len(parts) == 2 else parts[0]
             labels.append(label)
@@ -73,6 +65,7 @@ def predict_folder(
         raise NotADirectoryError(f"Pasta de entrada inválida: {input_dir}")
 
     labels = load_labels(labels_path)
+    LABEL_MAP = {"Health": "Saudavel", "Sick": "Doente"}
     model = tf.keras.models.load_model(model_path, compile=False)
 
     images = sorted([p for p in input_dir.rglob("*") if p.suffix.lower() in ALLOWED_EXTS])
@@ -92,16 +85,20 @@ def predict_folder(
         predicted_label = labels[best_idx]
         confidence = float(probs[best_idx])
 
-        # opcional: incluir distribuição completa
         scores = {labels[i]: float(probs[i]) for i in range(len(labels))}
+
+        predicted_label_pt = LABEL_MAP.get(predicted_label, predicted_label)
+        scores_pt = {LABEL_MAP.get(k, k): v for k, v in scores.items()}
 
         results.append(
             {
                 "image_name": img_path.name,
                 "image_path": str(img_path.relative_to(input_dir)),
                 "predicted_label": predicted_label,
+                "predicted_label_pt": predicted_label_pt,
                 "confidence": confidence,
                 "scores": scores,
+                "scores_pt": scores_pt,
             }
         )
 

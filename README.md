@@ -58,3 +58,8 @@ Com o ambiente virtual ativado:
 ```
 python src/predict_folder.py --in_dir input_images --out output/results.json
 ```
+```
+python src/prepare_data.py
+```
+```
+streamlit run dashboard/app.py

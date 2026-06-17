@@ -63,3 +63,7 @@ python src/prepare_data.py
 ```
 ```
 streamlit run dashboard/app.py
+```
+```
+python src/automation.py
+```

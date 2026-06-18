@@ -1,0 +1,11 @@
+services:
+  agrosmart:
+    build: .
+    container_name: agrosmart-dashboard
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./input_images:/app/input_images
+      - ./output:/app/output
+      - ./models:/app/models
+    restart: unless-stopped

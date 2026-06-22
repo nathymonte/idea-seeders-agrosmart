@@ -4,3 +4,4 @@ pillow==10.2.0
 pandas==3.0.2
 streamlit==1.56.0
 plotly==6.6.0
+kafka-python==3.0.2

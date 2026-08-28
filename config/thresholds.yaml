@@ -1,0 +1,11 @@
+soil_moisture:
+  minimum: 25
+  maximum: 70
+
+air_temperature:
+  minimum: 15
+  maximum: 32
+
+air_humidity:
+  minimum: 50
+  maximum: 85

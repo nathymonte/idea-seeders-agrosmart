@@ -1,0 +1,10 @@
+{
+  "event_id": "evt-001",
+  "sensor_id": "SENSOR-001",
+  "field_id": "TALHAO-01",
+  "event_timestamp": "2026-08-24T08:00:00Z",
+  "soil_moisture_percent": 36.5,
+  "air_temperature_celsius": 23.8,
+  "air_humidity_percent": 71.2,
+  "luminosity_lux": 12500
+}

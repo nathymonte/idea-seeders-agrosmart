@@ -1,0 +1,10 @@
+{
+  "event_id": "evt-invalid-001",
+  "sensor_id": "SENSOR-001",
+  "field_id": "TALHAO-01",
+  "event_timestamp": "2026-08-24T14:35:00Z",
+  "soil_moisture_percent": 125,
+  "air_temperature_celsius": 28.4,
+  "air_humidity_percent": 62.1,
+  "luminosity_lux": 19200
+}

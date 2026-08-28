@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import pandas as pd
@@ -7,12 +8,38 @@ import streamlit as st
 st.set_page_config(page_title="AgroSmart Dashboard", layout="wide")
 
 CSV_PATH = Path("output/classificacoes.csv")
+FIELD_STATUS_DIR = Path("data_lake/refined/field_status")
 
-st.title("AgroSmart - Painel de Monitoramento de Folhas")
-st.write("Dashboard interativo com resultados simulados de classificação de folhas.")
+st.title("AgroSmart - Painel de Monitoramento")
+st.write("Dashboard com classificacoes de folhas e indicadores consolidados do Data Lake.")
+
+field_status_files = sorted(FIELD_STATUS_DIR.glob("*.json")) if FIELD_STATUS_DIR.exists() else []
+if field_status_files:
+    st.subheader("Status atual do talhao")
+    selected_status = st.selectbox(
+        "Talhao",
+        options=field_status_files,
+        format_func=lambda path: path.stem,
+    )
+    with selected_status.open("r", encoding="utf-8") as file:
+        field_status = json.load(file)
+
+    sensor_summary = field_status.get("sensor_summary", {})
+    c1, c2, c3, c4, c5 = st.columns(5)
+    c1.metric("Nivel de atencao", field_status.get("attention_level", "N/A"))
+    c2.metric("Umidade solo media", f"{sensor_summary.get('average_soil_moisture_percent', 0):.1f}%")
+    c3.metric("Temperatura media", f"{sensor_summary.get('average_air_temperature_celsius', 0):.1f} C")
+    c4.metric("Umidade ar media", f"{sensor_summary.get('average_air_humidity_percent', 0):.1f}%")
+    c5.metric("Leituras", sensor_summary.get("readings_count", 0))
+
+    st.info(field_status.get("recommendation", "Sem recomendacao gerada."))
+    with st.expander("Detalhes do Data Lake"):
+        st.json(field_status)
+else:
+    st.warning("Status refinado nao encontrado. Rode: python scripts/historical_ingestion.py")
 
 if not CSV_PATH.exists():
-    st.error("Arquivo output/classificacoes.csv não encontrado. Rode antes: python src/prepare_data.py")
+    st.error("Arquivo output/classificacoes.csv nao encontrado. Rode antes: python src/prepare_data.py")
     st.stop()
 
 df = pd.read_csv(CSV_PATH)

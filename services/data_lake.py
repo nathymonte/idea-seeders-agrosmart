@@ -10,6 +10,8 @@ from pathlib import Path
 from statistics import mean
 from typing import Any, Iterable
 
+from services.threshold_config import get_threshold_config
+
 DATA_LAKE_PATH = Path(os.getenv("DATA_LAKE_PATH", "data_lake"))
 LAYERS = ("raw", "trusted", "refined", "rejected")
 
@@ -27,6 +29,13 @@ def parse_datetime(value: str | datetime | None = None) -> datetime:
     normalized = str(value).replace("Z", "+00:00")
     parsed = datetime.fromisoformat(normalized)
     return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+
+
+def parse_datetime_or_ingestion_time(value: str | datetime | None = None) -> datetime:
+    try:
+        return parse_datetime(value)
+    except ValueError:
+        return utc_now()
 
 
 def ensure_data_lake(base_path: Path | str = DATA_LAKE_PATH) -> Path:
@@ -47,6 +56,30 @@ def build_partition_path(
         raise ValueError(f"Camada invalida: {layer}")
 
     dt = parse_datetime(reference_datetime)
+    return _partition_path(layer, dataset, dt, filename, base_path)
+
+
+def build_safe_partition_path(
+    layer: str,
+    dataset: str,
+    reference_datetime: datetime | str | None = None,
+    filename: str = "readings.jsonl",
+    base_path: Path | str = DATA_LAKE_PATH,
+) -> Path:
+    if layer not in LAYERS:
+        raise ValueError(f"Camada invalida: {layer}")
+
+    dt = parse_datetime_or_ingestion_time(reference_datetime)
+    return _partition_path(layer, dataset, dt, filename, base_path)
+
+
+def _partition_path(
+    layer: str,
+    dataset: str,
+    dt: datetime,
+    filename: str,
+    base_path: Path | str,
+) -> Path:
     return (
         Path(base_path)
         / layer
@@ -103,7 +136,7 @@ def save_raw_event(
     base_path: Path | str = DATA_LAKE_PATH,
 ) -> Path:
     reference = event.get("event_timestamp") or event.get("timestamp") or event.get("ingested_at")
-    path = build_partition_path("raw", dataset, reference, "readings.jsonl", base_path)
+    path = build_safe_partition_path("raw", dataset, reference, "readings.jsonl", base_path)
     return append_json_line(path, event)
 
 
@@ -125,7 +158,7 @@ def save_rejected_sensor_event(
     base_path: Path | str = DATA_LAKE_PATH,
 ) -> Path:
     reference = event.get("event_timestamp") or event.get("timestamp") or utc_now()
-    path = build_partition_path(
+    path = build_safe_partition_path(
         "rejected",
         "sensor_readings",
         reference,
@@ -192,7 +225,9 @@ def load_image_analysis_summary(output_csv: Path | str = "output/classificacoes.
 def recompute_field_status(
     base_path: Path | str = DATA_LAKE_PATH,
     output_csv: Path | str = "output/classificacoes.csv",
+    threshold_config: dict[str, Any] | None = None,
 ) -> list[Path]:
+    config = threshold_config or get_threshold_config()
     records = read_dataset("trusted", "sensor_readings", base_path)
     grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for record in records:
@@ -212,8 +247,8 @@ def recompute_field_status(
             },
             "sensor_summary": summary,
             "latest_image_analysis": image_summary,
-            "attention_level": _attention_level(summary, image_summary),
-            "recommendation": _recommendation(summary, image_summary),
+            "attention_level": _attention_level(summary, image_summary, config),
+            "recommendation": _recommendation(summary, image_summary, config),
             "updated_at": utc_now().isoformat().replace("+00:00", "Z"),
         }
         written.append(write_json(Path(base_path) / "refined" / "field_status" / f"{field_id}.json", payload))
@@ -235,13 +270,13 @@ def _numbers(records: list[dict[str, Any]], key: str) -> list[float]:
     return [float(record[key]) for record in records if record.get(key) is not None]
 
 
-def _attention_level(summary: dict[str, Any], image_summary: dict[str, Any] | None) -> str:
-    risk_signals = [
-        summary["average_soil_moisture_percent"] < 25,
-        summary["average_air_temperature_celsius"] > 32,
-        summary["average_air_humidity_percent"] < 50,
-        bool(image_summary and image_summary.get("sick_images", 0) > 0),
-    ]
+def _attention_level(
+    summary: dict[str, Any],
+    image_summary: dict[str, Any] | None,
+    threshold_config: dict[str, Any],
+) -> str:
+    risk_signals = _expected_range_risk_signals(summary, threshold_config)
+    risk_signals.append(bool(image_summary and image_summary.get("sick_images", 0) > 0))
     total = sum(1 for signal in risk_signals if signal)
     if total >= 2:
         return "high"
@@ -250,20 +285,54 @@ def _attention_level(summary: dict[str, Any], image_summary: dict[str, Any] | No
     return "normal"
 
 
-def _recommendation(summary: dict[str, Any], image_summary: dict[str, Any] | None) -> str:
+def _recommendation(
+    summary: dict[str, Any],
+    image_summary: dict[str, Any] | None,
+    threshold_config: dict[str, Any],
+) -> str:
     actions: list[str] = []
-    if summary["average_soil_moisture_percent"] < 25:
-        actions.append("verificar irrigacao do talhao")
-    if summary["average_air_temperature_celsius"] > 32:
-        actions.append("acompanhar temperatura e exposicao solar")
-    if summary["average_air_humidity_percent"] < 50:
-        actions.append("monitorar umidade do ar")
+    field_messages = {
+        "soil_moisture_percent": "verificar irrigacao do talhao",
+        "air_temperature_celsius": "acompanhar temperatura e exposicao solar",
+        "air_humidity_percent": "monitorar umidade do ar",
+    }
+    for field_name, message in field_messages.items():
+        if _is_outside_expected_range(summary, threshold_config, field_name):
+            actions.append(message)
     if image_summary and image_summary.get("sick_images", 0) > 0:
         actions.append("inspecionar folhas com classificacao Sick")
 
     if not actions:
         return "Condicoes dentro da faixa esperada. Manter monitoramento."
     return "Recomendacao: " + "; ".join(actions) + "."
+
+
+def _expected_range_risk_signals(summary: dict[str, Any], threshold_config: dict[str, Any]) -> list[bool]:
+    return [
+        _is_outside_expected_range(summary, threshold_config, field_name)
+        for field_name, field_config in threshold_config["sensor_fields"].items()
+        if field_config.get("expected_range") is not None
+    ]
+
+
+def _is_outside_expected_range(
+    summary: dict[str, Any],
+    threshold_config: dict[str, Any],
+    field_name: str,
+) -> bool:
+    expected_range = threshold_config["sensor_fields"].get(field_name, {}).get("expected_range")
+    if expected_range is None:
+        return False
+
+    summary_key = _summary_key_for_field(field_name)
+    value = summary.get(summary_key)
+    if value is None:
+        return False
+    return value < expected_range["minimum"] or value > expected_range["maximum"]
+
+
+def _summary_key_for_field(field_name: str) -> str:
+    return f"average_{field_name}"
 
 
 def _as_float(value: Any) -> float | None:

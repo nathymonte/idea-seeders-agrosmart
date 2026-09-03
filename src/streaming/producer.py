@@ -6,8 +6,6 @@ from argparse import ArgumentParser, Namespace
 from datetime import datetime, timezone
 from uuid import uuid4
 
-from kafka import KafkaProducer
-
 
 def build_event() -> dict[str, object]:
     return {
@@ -32,6 +30,13 @@ def parse_args() -> Namespace:
 
 
 def main() -> None:
+    try:
+        from kafka import KafkaProducer
+    except ModuleNotFoundError as exc:
+        raise SystemExit(
+            "Dependencia kafka-python nao encontrada. Instale com: pip install -r requirements.txt"
+        ) from exc
+
     args = parse_args()
     producer = KafkaProducer(
         bootstrap_servers=args.bootstrap,

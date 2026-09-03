@@ -43,6 +43,15 @@ idea-seeders-agrosmart/
 - `rejected`: eventos rejeitados com os motivos da rejeicao.
 - `refined`: indicadores consolidados por talhao, prontos para o dashboard.
 
+## Configuracao de Thresholds
+
+As faixas de sensores ficam centralizadas em `config/thresholds.yaml`.
+
+- `allowed_range`: faixa fisica aceita pela validacao. Valores fora dessa faixa vao para `rejected`.
+- `expected_range`: faixa operacional esperada para nivel de atencao e recomendacoes. Campos sem `expected_range` sao validados, mas nao geram alerta operacional.
+
+O caminho do YAML pode ser alterado com a variavel `AGROSMART_THRESHOLDS_PATH`. A configuracao e carregada uma vez por processo; se o arquivo estiver ausente ou invalido, o sistema apresenta erro claro na inicializacao.
+
 ## Instalacao Local
 
 ```bash
@@ -98,8 +107,22 @@ python src/streaming/producer.py --bootstrap localhost:29092 --count 10
 Consumir Kafka e gravar no Data Lake:
 
 ```bash
-python src/streaming/consumer.py --bootstrap localhost:29092
+python src/streaming/consumer.py --bootstrap localhost:29092 --refine-every 10
 ```
+
+Por padrao, o consumer fica rodando continuamente, esperando novas mensagens no topico Kafka. Para testes curtos, use `--max-messages` para encerrar automaticamente depois de uma quantidade definida:
+
+```bash
+python src/streaming/consumer.py --bootstrap localhost:29092 --max-messages 5
+```
+
+Nesse caso, abra outro terminal e envie a mesma quantidade de eventos:
+
+```bash
+python src/streaming/producer.py --bootstrap localhost:29092 --count 5
+```
+
+No streaming, a camada `refined` e recalculada em micro-batches: por padrao, a cada 10 eventos validos. Eventos rejeitados nao contam para esse lote. O valor tambem pode ser configurado pela variavel `AGROSMART_REFINE_EVERY`.
 
 Os arquivos `scripts/sensor_producer.py` e `scripts/sensor_consumer.py` continuam existindo apenas como atalhos para os modulos em `src/streaming`.
 

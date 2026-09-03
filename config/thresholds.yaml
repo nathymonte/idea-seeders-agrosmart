@@ -1,11 +1,29 @@
-soil_moisture:
-  minimum: 25
-  maximum: 70
+sensor_fields:
+  soil_moisture_percent:
+    allowed_range:
+      minimum: 0
+      maximum: 100
+    expected_range:
+      minimum: 25
+      maximum: 70
 
-air_temperature:
-  minimum: 15
-  maximum: 32
+  air_temperature_celsius:
+    allowed_range:
+      minimum: -20
+      maximum: 60
+    expected_range:
+      minimum: 15
+      maximum: 32
 
-air_humidity:
-  minimum: 50
-  maximum: 85
+  air_humidity_percent:
+    allowed_range:
+      minimum: 0
+      maximum: 100
+    expected_range:
+      minimum: 50
+      maximum: 85
+
+  luminosity_lux:
+    allowed_range:
+      minimum: 0
+      maximum: 120000

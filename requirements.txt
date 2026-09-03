@@ -5,3 +5,4 @@ pandas==3.0.2
 streamlit==1.56.0
 plotly==6.6.0
 kafka-python==3.0.2
+PyYAML==6.0.2

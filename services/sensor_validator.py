@@ -4,12 +4,7 @@ from datetime import datetime, timezone
 from typing import Any
 from uuid import uuid5, NAMESPACE_URL
 
-DEFAULT_THRESHOLDS = {
-    "soil_moisture_percent": {"minimum": 0.0, "maximum": 100.0},
-    "air_temperature_celsius": {"minimum": -20.0, "maximum": 60.0},
-    "air_humidity_percent": {"minimum": 0.0, "maximum": 100.0},
-    "luminosity_lux": {"minimum": 0.0, "maximum": 120000.0},
-}
+from services.threshold_config import get_threshold_config
 
 REQUIRED_FIELDS = (
     "field_id",
@@ -25,10 +20,13 @@ def validate_sensor_event(
     event: dict[str, Any],
     source: str = "kafka",
     seen_event_ids: set[str] | None = None,
+    threshold_config: dict[str, Any] | None = None,
 ) -> tuple[dict[str, Any] | None, list[str]]:
-    normalized = _normalize_event(event, source)
+    config = threshold_config or get_threshold_config()
+    normalized = _normalize_event(event, source, config)
     errors = _required_field_errors(normalized)
-    errors.extend(_range_errors(normalized))
+    errors.extend(_timestamp_errors(event))
+    errors.extend(_range_errors(normalized, config))
 
     seen = seen_event_ids or set()
     event_id = normalized.get("event_id")
@@ -40,7 +38,7 @@ def validate_sensor_event(
     return normalized, []
 
 
-def _normalize_event(event: dict[str, Any], source: str) -> dict[str, Any]:
+def _normalize_event(event: dict[str, Any], source: str, threshold_config: dict[str, Any]) -> dict[str, Any]:
     normalized = dict(event)
 
     if "event_timestamp" not in normalized and "timestamp" in normalized:
@@ -56,7 +54,7 @@ def _normalize_event(event: dict[str, Any], source: str) -> dict[str, Any]:
     normalized["schema_version"] = "1.0"
     normalized["ingested_at"] = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
-    for field in DEFAULT_THRESHOLDS:
+    for field in threshold_config["sensor_fields"]:
         if field in normalized:
             normalized[field] = _to_float(normalized[field])
 
@@ -74,12 +72,22 @@ def _required_field_errors(event: dict[str, Any]) -> list[str]:
     return [f"campo obrigatorio ausente: {field}" for field in REQUIRED_FIELDS if event.get(field) in (None, "")]
 
 
-def _range_errors(event: dict[str, Any]) -> list[str]:
+def _timestamp_errors(event: dict[str, Any]) -> list[str]:
+    value = event.get("event_timestamp") or event.get("timestamp")
+    if not value:
+        return []
+    if _normalize_timestamp(value) is None:
+        return [f"timestamp invalido: {value}"]
+    return []
+
+
+def _range_errors(event: dict[str, Any], threshold_config: dict[str, Any]) -> list[str]:
     errors: list[str] = []
-    for field, limits in DEFAULT_THRESHOLDS.items():
+    for field, field_config in threshold_config["sensor_fields"].items():
         value = event.get(field)
         if value is None:
             continue
+        limits = field_config["allowed_range"]
         if not isinstance(value, (int, float)):
             errors.append(f"campo numerico invalido: {field}")
             continue

@@ -16,27 +16,39 @@ from services.data_lake import (
     save_trusted_sensor_reading,
 )
 from services.sensor_validator import validate_sensor_event
+from services.threshold_config import get_threshold_config
 
 
-def ingest_csv(csv_path: Path) -> tuple[int, int]:
-    ensure_data_lake()
-    preserve_historical_csv(csv_path)
-    seen_event_ids = load_seen_event_ids()
+def ingest_csv(
+    csv_path: Path,
+    base_path: Path | str = "data_lake",
+    output_csv: Path | str = "output/classificacoes.csv",
+    threshold_config: dict | None = None,
+) -> tuple[int, int]:
+    config = threshold_config or get_threshold_config()
+    ensure_data_lake(base_path)
+    preserve_historical_csv(csv_path, base_path)
+    seen_event_ids = load_seen_event_ids(base_path)
     accepted = 0
     rejected = 0
 
     with csv_path.open("r", encoding="utf-8-sig", newline="") as file:
         for row in csv.DictReader(file):
-            normalized, errors = validate_sensor_event(row, source="historical_csv", seen_event_ids=seen_event_ids)
+            normalized, errors = validate_sensor_event(
+                row,
+                source="historical_csv",
+                seen_event_ids=seen_event_ids,
+                threshold_config=config,
+            )
             if normalized:
-                save_trusted_sensor_reading(normalized)
+                save_trusted_sensor_reading(normalized, base_path)
                 seen_event_ids.add(normalized["event_id"])
                 accepted += 1
             else:
-                save_rejected_sensor_event(row, errors, source="historical_csv")
+                save_rejected_sensor_event(row, errors, source="historical_csv", base_path=base_path)
                 rejected += 1
 
-    recompute_field_status()
+    recompute_field_status(base_path, output_csv, config)
     return accepted, rejected
 
 

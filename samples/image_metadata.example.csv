@@ -1,0 +1,3 @@
+image_path,field_id,captured_at,actual_label,metadata_source
+health 1.jpg,TALHAO-01,2026-08-26T00:55:00Z,Health,simulation
+sick 1.jpg,TALHAO-02,2026-08-26T00:55:00Z,Sick,simulation

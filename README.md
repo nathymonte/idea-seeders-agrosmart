@@ -1,4 +1,134 @@
-# AgroSmart - Reconhecimento de Folhas e Data Lake
+# AgroSmart - Plataforma Integrada (Fase 6)
+
+## Plataforma Integrada
+
+O AgroSmart integra leituras ambientais simuladas, classificacao de folhas, processamento
+em Data Lake e recomendacoes automatizadas em um dashboard Streamlit.
+
+### Execucao Rapida no Windows
+
+O painel e o pipeline de sensores nao precisam carregar TensorFlow. Python 3.11 ou 3.12:
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements-dashboard.txt
+.\.venv\Scripts\python.exe -m scripts.demo
+.\scripts\start_dashboard.ps1 -Demo
+```
+
+Abra http://localhost:8501. A demonstracao usa `.demo/`, preserva os dados do sistema e
+recusa substituir uma pasta nao vazia. Contem 72 leituras aceitas, uma rejeitada e tres
+talhoes com niveis normal, medium e high. Para gerar outra demonstracao, escolha uma nova
+pasta com `python -m scripts.demo --destination outro-diretorio` e configure os caminhos.
+
+Alternativa Docker, depois de gerar `.demo/`:
+
+```powershell
+docker compose -f docker-compose.yml -f docker-compose.demo.yml -p agrosmart-phase6 up --build -d agrosmart
+```
+
+As previsoes das imagens sao reaproveitadas de `output/results.json`; os talhoes e datas
+da demonstracao sao metadados simulados, identificados como `simulation`. Nao representam
+nova execucao do modelo. A classificacao e binaria Health/Sick e nao diagnostica doencas.
+
+### Integracao e Decisoes
+
+```mermaid
+flowchart LR
+    S[Simulador Python] --> K[Kafka]
+    K --> C[Consumer]
+    C --> R[Raw]
+    R --> V[Validacao YAML]
+    V --> T[Trusted]
+    V --> X[Rejected]
+    H[CSV historico] --> R
+    H --> V
+    I[Modelo de folhas] --> M[Previsoes + manifest de metadados]
+    M --> A[Motor de decisao por talhao e periodo]
+    T --> A
+    A --> F[Refined]
+    F --> D[Dashboard Streamlit]
+    T --> D
+    M --> D
+```
+
+O motor decide pela ultima leitura de cada talhao; as medias descrevem a janela de 24 horas
+encerrada nessa leitura. Imagens so influenciam o mesmo `field_id` e essa janela temporal.
+Imagens antigas sem identificador ficam sem associacao e nao elevam o risco dos talhoes.
+O painel distingue a consolidacao operacional dos filtros historicos e sinaliza dados antigos.
+Confianca do modelo nao e taxa de acerto. A taxa so aparece com rotulos explicitos no manifest.
+
+O consumer consolida a cada 10 eventos validos ou 5 segundos, incluindo durante espera sem
+mensagens; rejeitados nao incrementam o lote. Ctrl+C e `--max-messages` consolidam pendencias.
+Offsets Kafka sao confirmados manualmente depois do processamento do lote. Na inicializacao,
+o refinamento e reconstruido para recuperar uma interrupcao anterior. A entrega e pelo menos
+uma vez: a deduplicacao protege `trusted`, mas `raw` pode conter reentregas.
+
+Durante o streaming, apenas os talhoes afetados e suas particoes da janela recente sao lidos.
+A inicializacao ainda carrega todos os IDs para deduplicacao; JSONL local e um unico consumer
+sao o limite atual. Nao executar varias replicas de writers contra os mesmos arquivos.
+
+### Imagens e Metadados
+
+Para executar o modelo de classificacao, use Python 3.11 com `requirements.txt` ou o perfil Docker vision.
+Associe imagens com um CSV de metadados contendo `image_path,field_id,captured_at,actual_label`.
+`actual_label` e opcional; `captured_at` deve ser um timestamp ISO-8601 UTC.
+
+```powershell
+python src/predict_folder.py --in_dir input_images --out output/results.json
+python src/prepare_data.py --metadata samples/image_metadata.example.csv
+python src/automation.py
+```
+
+O arquivo de exemplo demonstra o formato; substitua seus metadados por associacoes verificadas.
+Sem manifest, o preparo conserva a data de geracao da predicao e deixa o talhao sem associacao.
+O preparo tambem atualiza `refined` uma vez, incorporando as novas imagens aos talhoes associados.
+O relatorio usa o mesmo motor de decisao do dashboard, sem sorteio de diagnosticos.
+
+### Dashboard e Exportacao
+
+Abas Ambiente, Folhas e Dados; filtros compartilhados de talhao, periodo UTC e classificacao.
+O painel atualiza os dados a cada 5 segundos. Mostra ultima leitura, medias, quatro series
+ambientais, faixas operacionais do YAML, recomendacoes e motivos, imagens e exportacoes CSV.
+
+```powershell
+python -m scripts.export_dataset --out output/leituras_processadas.csv --fields TALHAO-01
+python -m src.streaming.producer --scenario high --fields TALHAO-02 TALHAO-03 --count 10
+python -m src.streaming.consumer --refine-every 10 --refine-seconds 5
+```
+
+Variaveis: `DATA_LAKE_PATH`, `AGROSMART_IMAGE_CSV`, `AGROSMART_THRESHOLDS_PATH`,
+`AGROSMART_REFINE_EVERY`, `AGROSMART_REFINE_SECONDS`, `AGROSMART_STALE_SECONDS` (300 por padrao).
+Sensores simulados: umidade do solo (%), temperatura do ar (C), umidade do ar (%) e luz (lux).
+Cenarios do producer: random, normal, dry, hot e high; valores derivam do YAML.
+
+### Docker e Verificacao
+
+```powershell
+docker compose --profile streaming up --build -d
+docker compose --profile vision run --rm image-processing
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+```
+
+Dashboard e consumer usam a imagem leve; o modelo tem uma imagem separada. Kafka 3.9.0 tem
+volume persistente e healthcheck. O consumer aguarda prontidao do broker. Nenhum processamento
+de imagens bloqueia a inicializacao do painel. Configure `AGROSMART_DASHBOARD_PORT` se 8501
+estiver ocupada. Use `docker compose -p nome-da-sprint` para isolar containers e volumes.
+
+Verificacoes adicionais opcionais (Playwright nao e dependencia de producao):
+
+```powershell
+python -m pip install playwright
+python -m scripts.verify_dashboard --browser 'C:\Program Files\Google\Chrome\Application\chrome.exe'
+python -m scripts.verify_kafka
+```
+
+Os scripts de verificacao geram evidencias em `artifacts/`. O teste Kafka usa topico exclusivo,
+mensagens validas, timestamp invalido, JSON malformado e duplicata, com Data Lake isolado.
+Os artefatos da entrega estao em `docs/fase6/`, incluindo o resumo, diagramas, capturas,
+dataset processado e decisoes automatizadas. A gravacao e publicacao do video ficam pendentes.
+
+## Visao Geral
 
 O AgroSmart e um prototipo de agricultura inteligente para cultivo de tomates. Ele combina:
 

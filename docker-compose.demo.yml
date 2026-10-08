@@ -1,0 +1,5 @@
+services:
+  agrosmart:
+    volumes:
+      - ./.demo/data_lake:/app/data_lake
+      - ./.demo/output:/app/output

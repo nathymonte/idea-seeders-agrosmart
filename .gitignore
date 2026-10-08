@@ -3,3 +3,5 @@ venv311/
 .venv/
 .idea/
 __pycache__/
+.demo/
+artifacts/

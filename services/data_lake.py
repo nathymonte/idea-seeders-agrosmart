@@ -4,15 +4,16 @@ import csv
 import json
 import os
 import shutil
+import tempfile
 from collections import defaultdict
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from statistics import mean
 from typing import Any, Iterable
 
 from services.threshold_config import get_threshold_config
+from services.paths import DATA_LAKE_PATH, IMAGE_CSV_PATH, validate_field_id
 
-DATA_LAKE_PATH = Path(os.getenv("DATA_LAKE_PATH", "data_lake"))
 LAYERS = ("raw", "trusted", "refined", "rejected")
 
 
@@ -22,13 +23,13 @@ def utc_now() -> datetime:
 
 def parse_datetime(value: str | datetime | None = None) -> datetime:
     if isinstance(value, datetime):
-        return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
+        return value.astimezone(timezone.utc) if value.tzinfo else value.replace(tzinfo=timezone.utc)
     if not value:
         return utc_now()
 
     normalized = str(value).replace("Z", "+00:00")
     parsed = datetime.fromisoformat(normalized)
-    return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc) if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
 
 
 def parse_datetime_or_ingestion_time(value: str | datetime | None = None) -> datetime:
@@ -115,18 +116,45 @@ def iter_jsonl_files(layer: str, dataset: str, base_path: Path | str = DATA_LAKE
     return root.rglob("*.jsonl")
 
 
-def read_dataset(layer: str, dataset: str, base_path: Path | str = DATA_LAKE_PATH) -> list[dict[str, Any]]:
+def read_dataset(
+    layer: str, dataset: str, base_path: Path | str = DATA_LAKE_PATH,
+    start: datetime | None = None, end: datetime | None = None,
+    field_ids: set[str] | None = None,
+) -> list[dict[str, Any]]:
     records: list[dict[str, Any]] = []
     for path in iter_jsonl_files(layer, dataset, base_path):
-        records.extend(read_jsonl(path))
+        if start or end:
+            parts = dict(p.split("=", 1) for p in path.parts if "=" in p)
+            partition = datetime(int(parts["year"]), int(parts["month"]), int(parts["day"]), tzinfo=timezone.utc)
+            if start and partition.date() < start.date():
+                continue
+            if end and partition.date() > end.date():
+                continue
+        for record in read_jsonl(path):
+            if field_ids is not None and record.get("field_id") not in field_ids:
+                continue
+            if start or end:
+                timestamp = parse_datetime(record.get("event_timestamp"))
+                if start and timestamp < start or end and timestamp > end:
+                    continue
+            records.append(record)
     return records
 
 
 def write_json(path: Path | str, payload: dict[str, Any]) -> Path:
     target = Path(path)
     target.parent.mkdir(parents=True, exist_ok=True)
-    with target.open("w", encoding="utf-8") as file:
-        json.dump(payload, file, ensure_ascii=False, indent=2, sort_keys=True)
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(mode="w", encoding="utf-8", dir=target.parent, delete=False) as file:
+            temporary = Path(file.name)
+            json.dump(payload, file, ensure_ascii=False, indent=2, sort_keys=True, allow_nan=False)
+            file.flush()
+            os.fsync(file.fileno())
+        os.replace(temporary, target)
+    finally:
+        if temporary is not None:
+            temporary.unlink(missing_ok=True)
     return target
 
 
@@ -197,7 +225,10 @@ def load_seen_event_ids(base_path: Path | str = DATA_LAKE_PATH) -> set[str]:
     }
 
 
-def load_image_analysis_summary(output_csv: Path | str = "output/classificacoes.csv") -> dict[str, Any] | None:
+def load_image_analysis_summary(
+    output_csv: Path | str = IMAGE_CSV_PATH, field_id: str | None = None,
+    start: datetime | None = None, end: datetime | None = None,
+) -> dict[str, Any] | None:
     path = Path(output_csv)
     if not path.exists():
         return None
@@ -208,6 +239,24 @@ def load_image_analysis_summary(output_csv: Path | str = "output/classificacoes.
     if not rows:
         return None
 
+    if field_id is not None:
+        rows = [row for row in rows if row.get("field_id") == field_id]
+    dated = []
+    for row in rows:
+        value = row.get("data_analise")
+        if not value:
+            continue
+        try:
+            timestamp = parse_datetime(value)
+        except ValueError:
+            continue
+        if start and timestamp < start or end and timestamp > end:
+            continue
+        dated.append((timestamp, row))
+    if not dated:
+        return None
+    dated.sort(key=lambda item: item[0])
+    rows = [row for _, row in dated]
     latest = rows[-1]
     sick_count = sum(1 for row in rows if row.get("predicted_label") == "Sick")
     return {
@@ -224,20 +273,52 @@ def load_image_analysis_summary(output_csv: Path | str = "output/classificacoes.
 
 def recompute_field_status(
     base_path: Path | str = DATA_LAKE_PATH,
-    output_csv: Path | str = "output/classificacoes.csv",
+    output_csv: Path | str = IMAGE_CSV_PATH,
     threshold_config: dict[str, Any] | None = None,
+    field_ids: set[str] | None = None,
+    window_hours: float = 24,
+    reference_time: datetime | None = None,
+    field_reference_times: dict[str, datetime] | None = None,
 ) -> list[Path]:
+    if window_hours <= 0:
+        raise ValueError("window_hours deve ser positivo")
     config = threshold_config or get_threshold_config()
-    records = read_dataset("trusted", "sensor_readings", base_path)
+    reference = reference_time or utc_now()
+    start = reference - timedelta(hours=window_hours)
+    if field_reference_times:
+        records = []
+        for field, observed_at in field_reference_times.items():
+            previous_path = Path(base_path) / "refined/field_status" / f"{validate_field_id(field)}.json"
+            if previous_path.exists():
+                previous = json.loads(previous_path.read_text(encoding="utf-8"))
+                previous_time = previous.get("sensor_summary", {}).get("last_reading_at")
+                if previous_time:
+                    observed_at = max(observed_at, parse_datetime(previous_time))
+            records.extend(read_dataset("trusted", "sensor_readings", base_path,
+                                        observed_at - timedelta(hours=window_hours), observed_at, {field}))
+    else:
+        records = read_dataset("trusted", "sensor_readings", base_path, field_ids=field_ids,
+                               start=start if reference_time else None, end=reference if reference_time else None)
     grouped: dict[str, list[dict[str, Any]]] = defaultdict(list)
     for record in records:
         grouped[str(record.get("field_id", "TALHAO-01"))].append(record)
 
-    image_summary = load_image_analysis_summary(output_csv)
     written: list[Path] = []
     for field_id, field_records in grouped.items():
-        field_records.sort(key=lambda item: item["event_timestamp"])
+        validate_field_id(field_id)
+        field_records.sort(key=lambda item: parse_datetime(item["event_timestamp"]))
+        latest_time = parse_datetime(field_records[-1]["event_timestamp"])
+        # Historical imports use the latest observation as their reference, not today's date.
+        period_end = reference if reference_time else latest_time
+        period_start = period_end - timedelta(hours=window_hours)
+        field_records = [r for r in field_records if period_start <= parse_datetime(r["event_timestamp"]) <= period_end]
+        if not field_records:
+            continue
         summary = _build_sensor_summary(field_records)
+        image_summary = load_image_analysis_summary(output_csv, field_id, period_start, period_end)
+        decision_summary = {f"average_{key}": value for key, value in field_records[-1].items()
+                            if key in config["sensor_fields"]}
+        reasons = decision_reasons(decision_summary, image_summary, config)
         payload = {
             "field_id": field_id,
             "crop": "tomato",
@@ -246,13 +327,30 @@ def recompute_field_status(
                 "end": field_records[-1]["event_timestamp"],
             },
             "sensor_summary": summary,
+            "latest_reading": field_records[-1],
             "latest_image_analysis": image_summary,
-            "attention_level": _attention_level(summary, image_summary, config),
-            "recommendation": _recommendation(summary, image_summary, config),
+            "attention_level": _attention_level(decision_summary, image_summary, config),
+            "recommendation": _recommendation(decision_summary, image_summary, config),
+            "decision_reasons": reasons,
+            "decision_basis": "latest_reading",
+            "window_hours": window_hours,
             "updated_at": utc_now().isoformat().replace("+00:00", "Z"),
         }
         written.append(write_json(Path(base_path) / "refined" / "field_status" / f"{field_id}.json", payload))
     return written
+
+
+def decision_reasons(summary: dict, image_summary: dict | None, config: dict) -> list[str]:
+    reasons = []
+    labels = {"soil_moisture_percent": "Umidade do solo (%)", "air_temperature_celsius": "Temperatura (C)",
+              "air_humidity_percent": "Umidade do ar (%)", "luminosity_lux": "Luminosidade (lux)"}
+    for field, options in config["sensor_fields"].items():
+        if _is_outside_expected_range(summary, config, field):
+            limits = options["expected_range"]
+            reasons.append(f"{labels.get(field, field)}: {summary['average_' + field]} fora de {limits['minimum']} a {limits['maximum']}")
+    if image_summary and image_summary.get("sick_images", 0):
+        reasons.append(f"{image_summary['sick_images']} imagem(ns) Sick no talhao e periodo")
+    return reasons
 
 
 def _build_sensor_summary(records: list[dict[str, Any]]) -> dict[str, Any]:

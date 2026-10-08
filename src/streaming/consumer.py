@@ -2,8 +2,9 @@ import argparse
 import json
 import os
 import sys
+import time
 from pathlib import Path
-from typing import Any, Iterable, Protocol
+from typing import Any, Iterable, Protocol, Callable
 
 sys.path.append(str(Path(__file__).resolve().parents[2]))
 
@@ -14,6 +15,7 @@ from services.data_lake import (
     save_raw_event,
     save_rejected_sensor_event,
     save_trusted_sensor_reading,
+    parse_datetime,
 )
 from services.sensor_validator import validate_sensor_event
 from services.threshold_config import get_threshold_config
@@ -26,8 +28,9 @@ class KafkaMessage(Protocol):
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Consome leituras Kafka e grava no Data Lake AgroSmart.")
     parser.add_argument("--topic", default=os.getenv("KAFKA_SENSOR_TOPIC", "sensor-readings"))
-    parser.add_argument("--bootstrap", default=os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092"))
+    parser.add_argument("--bootstrap", default=os.getenv("KAFKA_BOOTSTRAP_SERVERS", "localhost:29092"))
     parser.add_argument("--group-id", default="agrosmart-data-lake-consumer")
+    parser.add_argument("--refine-seconds", type=float, default=float(os.getenv("AGROSMART_REFINE_SECONDS", "5")))
     parser.add_argument("--max-messages", type=int, default=0, help="0 consome continuamente.")
     parser.add_argument(
         "--refine-every",
@@ -95,9 +98,14 @@ def consume_messages(
     base_path: Path | str = None,
     output_csv: Path | str = "output/classificacoes.csv",
     threshold_config: dict | None = None,
+    refine_seconds: float = 5,
+    clock: Callable[[], float] = time.monotonic,
+    acknowledge: Callable[[KafkaMessage], None] | None = None,
 ) -> int:
     if refine_every < 1:
         raise ValueError("refine_every deve ser maior ou igual a 1")
+    if refine_seconds <= 0:
+        raise ValueError("refine_seconds deve ser positivo")
 
     data_lake_path = base_path or os.getenv("DATA_LAKE_PATH", "data_lake")
     config = threshold_config or get_threshold_config()
@@ -105,36 +113,64 @@ def consume_messages(
     seen_event_ids = load_seen_event_ids(data_lake_path)
     consumed = 0
     accepted_since_refine = 0
+    affected_fields: set[str] = set()
+    field_times = {}
+    pending_messages = []
+    last_refine = clock()
 
-    for message in messages:
-        event, decode_errors = decode_message_value(message.value)
-        if decode_errors:
-            save_raw_event(event, dataset="sensors", base_path=data_lake_path)
-            save_rejected_sensor_event(event, decode_errors, source="kafka", base_path=data_lake_path)
-            was_accepted = False
-            print(f"Rejected: {event.get('event_id', 'sem-event-id')} -> {', '.join(decode_errors)}")
-        else:
-            was_accepted = process_sensor_event(event, seen_event_ids, config, data_lake_path)
-        if was_accepted:
-            accepted_since_refine += 1
+    def flush() -> None:
+        nonlocal accepted_since_refine, last_refine
+        if accepted_since_refine:
+            recompute_field_status(data_lake_path, output_csv, config, field_ids=set(affected_fields),
+                                   field_reference_times=dict(field_times))
+        if acknowledge:
+            for processed_message in pending_messages:
+                acknowledge(processed_message)
+        pending_messages.clear()
+        affected_fields.clear()
+        field_times.clear()
+        accepted_since_refine = 0
+        last_refine = clock()
 
-        consumed += 1
-        if accepted_since_refine >= refine_every:
-            recompute_field_status(data_lake_path, output_csv, config)
-            accepted_since_refine = 0
-
-        if max_messages and consumed >= max_messages:
-            break
-
-    if accepted_since_refine:
-        recompute_field_status(data_lake_path, output_csv, config)
+    try:
+        for message in messages:
+            # None represents an idle Kafka poll, so deadlines also fire without new events.
+            if message is None:
+                if pending_messages and clock() - last_refine >= refine_seconds:
+                    flush()
+                continue
+            event, decode_errors = decode_message_value(message.value)
+            if decode_errors:
+                save_raw_event(event, dataset="sensors", base_path=data_lake_path)
+                save_rejected_sensor_event(event, decode_errors, source="kafka", base_path=data_lake_path)
+                was_accepted = False
+                print(f"Rejected: {event.get('event_id', 'sem-event-id')} -> {', '.join(decode_errors)}")
+            else:
+                was_accepted = process_sensor_event(event, seen_event_ids, config, data_lake_path)
+            pending_messages.append(message)
+            if was_accepted:
+                accepted_since_refine += 1
+                affected_fields.add(event['field_id'])
+                observed = parse_datetime(event.get('event_timestamp') or event.get('timestamp'))
+                field_times[event['field_id']] = max(observed, field_times.get(event['field_id'], observed))
+            consumed += 1
+            if (accepted_since_refine >= refine_every or clock() - last_refine >= refine_seconds
+                    or not accepted_since_refine):
+                flush()
+            if max_messages and consumed >= max_messages:
+                break
+    except KeyboardInterrupt:
+        flush()
+        raise
+    else:
+        flush()
 
     return consumed
 
 
 def main() -> None:
     try:
-        from kafka import KafkaConsumer
+        from kafka import KafkaConsumer, TopicPartition, OffsetAndMetadata
     except ModuleNotFoundError as exc:
         raise SystemExit(
             "Dependencia kafka-python nao encontrada. Instale com: pip install -r requirements.txt"
@@ -143,22 +179,40 @@ def main() -> None:
     args = parse_args()
     threshold_config = get_threshold_config()
     ensure_data_lake()
+    # Recover refined outputs after a previous interrupted batch before replaying Kafka offsets.
+    recompute_field_status(threshold_config=threshold_config)
 
     consumer = KafkaConsumer(
         args.topic,
         bootstrap_servers=args.bootstrap,
         group_id=args.group_id,
         auto_offset_reset="earliest",
-        enable_auto_commit=True,
+        enable_auto_commit=False,
     )
+
+    def poll_messages():
+        while True:
+            batches = consumer.poll(timeout_ms=500, max_records=1)
+            if not batches:
+                yield None
+            for batch in batches.values():
+                yield from batch
+
+    def acknowledge(message):
+        partition = TopicPartition(message.topic, message.partition)
+        consumer.commit({partition: OffsetAndMetadata(message.offset + 1, "")})
 
     try:
         consume_messages(
-            consumer,
+            poll_messages(),
             max_messages=args.max_messages,
             refine_every=args.refine_every,
             threshold_config=threshold_config,
+            refine_seconds=args.refine_seconds,
+            acknowledge=acknowledge,
         )
+    except KeyboardInterrupt:
+        print("Consumer encerrado com lote pendente consolidado.")
     finally:
         consumer.close()
 

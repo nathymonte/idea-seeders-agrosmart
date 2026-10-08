@@ -1,10 +1,12 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+import math
 from typing import Any
 from uuid import uuid5, NAMESPACE_URL
 
 from services.threshold_config import get_threshold_config
+from services.paths import validate_field_id
 
 REQUIRED_FIELDS = (
     "field_id",
@@ -27,10 +29,20 @@ def validate_sensor_event(
     errors = _required_field_errors(normalized)
     errors.extend(_timestamp_errors(event))
     errors.extend(_range_errors(normalized, config))
+    field_id = normalized.get("field_id")
+    if not isinstance(field_id, str):
+        errors.append("field_id deve ser texto")
+    else:
+        try:
+            validate_field_id(field_id)
+        except ValueError as exc:
+            errors.append(str(exc))
 
     seen = seen_event_ids or set()
     event_id = normalized.get("event_id")
-    if event_id and event_id in seen:
+    if not isinstance(event_id, str):
+        errors.append("event_id deve ser texto")
+    elif event_id and event_id in seen:
         errors.append(f"event_id duplicado: {event_id}")
 
     if errors:
@@ -49,7 +61,6 @@ def _normalize_event(event: dict[str, Any], source: str, threshold_config: dict[
         normalized["event_timestamp"] = timestamp
 
     normalized.setdefault("sensor_id", "SENSOR-001")
-    normalized.setdefault("field_id", "TALHAO-01")
     normalized["source"] = source
     normalized["schema_version"] = "1.0"
     normalized["ingested_at"] = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
@@ -88,7 +99,7 @@ def _range_errors(event: dict[str, Any], threshold_config: dict[str, Any]) -> li
         if value is None:
             continue
         limits = field_config["allowed_range"]
-        if not isinstance(value, (int, float)):
+        if not isinstance(value, (int, float)) or not math.isfinite(value):
             errors.append(f"campo numerico invalido: {field}")
             continue
         if value < limits["minimum"] or value > limits["maximum"]:
@@ -114,5 +125,7 @@ def _normalize_timestamp(value: Any) -> str | None:
 def _to_float(value: Any) -> float | Any:
     try:
         return float(value)
+    except OverflowError:
+        return str(value)
     except (TypeError, ValueError):
         return value

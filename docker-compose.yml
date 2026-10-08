@@ -1,9 +1,10 @@
 services:
   agrosmart:
-    build: .
-    container_name: agrosmart-dashboard
+    build:
+      context: .
+      target: dashboard
     ports:
-      - "8501:8501"
+      - "${AGROSMART_DASHBOARD_PORT:-8501}:8501"
     environment:
       KAFKA_BOOTSTRAP_SERVERS: kafka:9092
       KAFKA_SENSOR_TOPIC: sensor-readings
@@ -15,12 +16,11 @@ services:
       - ./models:/app/models
       - ./data_lake:/app/data_lake
     restart: unless-stopped
-    depends_on:
-      - kafka
 
   data-lake-consumer:
-    build: .
-    container_name: agrosmart-data-lake-consumer
+    build:
+      context: .
+      target: dashboard
     command: python scripts/sensor_consumer.py
     profiles:
       - streaming
@@ -30,23 +30,47 @@ services:
       DATA_LAKE_PATH: /app/data_lake
       AGROSMART_THRESHOLDS_PATH: /app/config/thresholds.yaml
       AGROSMART_REFINE_EVERY: 10
+      AGROSMART_REFINE_SECONDS: 5
     volumes:
       - ./data_lake:/app/data_lake
       - ./output:/app/output
     depends_on:
-      - kafka
+      kafka:
+        condition: service_healthy
+    restart: unless-stopped
+
+  image-processing:
+    build:
+      context: .
+      target: vision
+    profiles: [vision]
+    environment:
+      DATA_LAKE_PATH: /app/data_lake
+      AGROSMART_IMAGE_CSV: /app/output/classificacoes.csv
+    volumes:
+      - ./input_images:/app/input_images:ro
+      - ./models:/app/models:ro
+      - ./output:/app/output
+      - ./data_lake:/app/data_lake
 
   kafka:
-    image: apache/kafka:latest
-    container_name: kafka
+    image: apache/kafka:3.9.0
     ports:
       - "9092:9092"
       - "9093:9093"
       - "29092:29092"
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list >/dev/null 2>&1"]
+      interval: 10s
+      timeout: 10s
+      retries: 12
+      start_period: 20s
     environment:
       KAFKA_NODE_ID: 1
       KAFKA_PROCESS_ROLES: broker,controller
-      KAFKA_LISTENERS: PLAINTEXT://0.0.0.0:9092,PLAINTEXT_HOST://0.0.0.0:29092,CONTROLLER://0.0.0.0:9093
+      KAFKA_LISTENERS: PLAINTEXT://:9092,PLAINTEXT_HOST://:29092,CONTROLLER://kafka:9093
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
@@ -57,3 +81,7 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_NUM_PARTITIONS: 3
+      KAFKA_LOG_DIRS: /var/lib/kafka/data
+
+volumes:
+  kafka-data:

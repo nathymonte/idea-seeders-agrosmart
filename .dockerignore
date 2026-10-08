@@ -4,3 +4,12 @@ __pycache__/
 *.pyc
 .git/
 .streamlit/
+.venv/
+.demo/
+artifacts/
+docs/
+*.mp4
+*.zip
+*.docx
+work/
+Imagens Treinamento*/

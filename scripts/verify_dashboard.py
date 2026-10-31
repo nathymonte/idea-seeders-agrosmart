@@ -2,6 +2,7 @@
 import argparse
 import json
 from pathlib import Path
+
 from playwright.sync_api import sync_playwright
 
 
@@ -24,7 +25,8 @@ def verify(url: str, browser_executable: str, destination: Path):
             page.screenshot(path=str(destination / f'{name}-evolucao.png'))
             page.get_by_role('tab', name='Folhas', exact=True).click()
             page.locator('[data-testid="stImage"] img').first.wait_for()
-            assert page.locator('[data-testid="stImage"] img').first.evaluate('(img) => img.complete && img.naturalWidth > 0')
+            image = page.locator('[data-testid="stImage"] img').first
+            assert image.evaluate('(img) => img.complete && img.naturalWidth > 0')
             page.screenshot(path=str(destination / f'{name}-folhas.png'), full_page=True)
             page.get_by_role('tab', name='Dados', exact=True).click()
             with page.expect_download() as download:
@@ -32,7 +34,8 @@ def verify(url: str, browser_executable: str, destination: Path):
             exported = download.value
             exported.save_as(str(destination / f'{name}-leituras.csv'))
             assert (destination / f'{name}-leituras.csv').stat().st_size > 100
-            results.append({'viewport': name, 'charts': True, 'image': True, 'export': True, 'horizontal_overflow': False})
+            results.append({'viewport': name, 'charts': True, 'image': True, 'export': True,
+                            'horizontal_overflow': False})
             page.close()
         browser.close()
     (destination / 'browser-checks.json').write_text(json.dumps(results, indent=2), encoding='utf-8')

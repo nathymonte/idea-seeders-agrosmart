@@ -2,7 +2,7 @@ import argparse
 import csv
 from pathlib import Path
 
-from services.data_lake import read_dataset, parse_datetime
+from services.data_lake import parse_datetime, read_dataset
 from services.paths import DATA_LAKE_PATH
 
 

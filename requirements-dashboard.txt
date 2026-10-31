@@ -1,7 +1,8 @@
 numpy==1.26.4
-pillow==10.2.0
+pillow==12.3.0  # 13.x ainda nao suportado pelo Streamlit; ver security/RISCOS_ACEITOS.md
 pandas==3.0.2
 streamlit==1.56.0
 plotly==6.6.0
 kafka-python==3.0.2
 PyYAML==6.0.2
+pyarrow==23.0.1  # 25.x falhou nos testes com numpy 1.26 (exigido pelo TensorFlow 2.15)

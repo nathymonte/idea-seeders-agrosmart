@@ -6,8 +6,11 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from services.paths import PROJECT_ROOT, IMAGE_CSV_PATH, validate_field_id
 from services.data_lake import parse_datetime, recompute_field_status
+from services.observability import get_logger, write_heartbeat
+from services.paths import IMAGE_CSV_PATH, PROJECT_ROOT, validate_field_id
+
+logger = get_logger("image-processing")
 
 CSV_FIELDS = ["image_name", "image_path", "predicted_label", "predicted_label_pt", "confidence",
               "score_health", "score_sick", "actual_label", "is_correct", "data_analise",
@@ -72,9 +75,14 @@ def main():
     with args.out.open("w", encoding="utf-8-sig", newline="") as file:
         writer = csv.DictWriter(file, fieldnames=CSV_FIELDS)
         writer.writeheader()
-        writer.writerows(prepare_rows(data, metadata))
-    recompute_field_status(output_csv=args.out)
-    print(f"CSV preparado: {args.out}")
+        rows = prepare_rows(data, metadata)
+        writer.writerows(rows)
+    written = recompute_field_status(output_csv=args.out)
+    sick = sum(1 for row in rows if row.get("predicted_label") == "Sick")
+    logger.info("classificacoes preparadas", extra={"output": str(args.out), "images": len(rows),
+                                                    "sick_images": sick, "fields_refined": len(written)})
+    write_heartbeat("image-processing", state="finished", images=len(rows), sick_images=sick,
+                    associated=sum(1 for row in rows if row.get("field_id")), output=str(args.out))
 
 
 if __name__ == "__main__":

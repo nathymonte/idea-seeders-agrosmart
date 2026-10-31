@@ -15,9 +15,9 @@ from services.data_lake import (
     save_rejected_sensor_event,
     save_trusted_sensor_reading,
 )
+from services.paths import DATA_LAKE_PATH, IMAGE_CSV_PATH
 from services.sensor_validator import validate_sensor_event
 from services.threshold_config import get_threshold_config
-from services.paths import DATA_LAKE_PATH, IMAGE_CSV_PATH
 
 
 def ingest_csv(

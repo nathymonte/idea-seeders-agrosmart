@@ -1,23 +1,29 @@
-import csv
 import io
 import json
 import tempfile
 import unittest
 from contextlib import redirect_stdout
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from services.data_lake import (load_image_analysis_summary, read_dataset, recompute_field_status,
-                                save_trusted_sensor_reading, write_json, parse_datetime)
-from services.dashboard_data import image_frame, filter_images, sensor_frame
+from test_sensor_pipeline import TEST_CONFIG, sensor_event, trusted_event, write_csv
+
+from scripts.demo import build_demo
+from services.dashboard_data import image_frame
+from services.data_lake import (
+    load_image_analysis_summary,
+    parse_datetime,
+    read_dataset,
+    recompute_field_status,
+    save_trusted_sensor_reading,
+    write_json,
+)
 from services.sensor_validator import validate_sensor_event
-from services.threshold_config import get_threshold_config, ThresholdConfigError
+from services.threshold_config import ThresholdConfigError, get_threshold_config
 from src.prepare_data import prepare_rows
 from src.streaming.consumer import consume_messages
-from scripts.demo import build_demo
-from test_sensor_pipeline import TEST_CONFIG, sensor_event, trusted_event, write_csv
 
 
 class Phase6Test(unittest.TestCase):
@@ -118,7 +124,7 @@ class Phase6Test(unittest.TestCase):
             save_trusted_sensor_reading(trusted_event(event_id='recent'), tmp)
             old_path = next((Path(tmp) / 'trusted').rglob('month=07/day=01/*.jsonl'))
             old_path.write_text('corrupt old partition')
-            start = datetime(2026, 8, 24, tzinfo=timezone.utc)
+            start = datetime(2026, 8, 24, tzinfo=UTC)
             records = read_dataset('trusted', 'sensor_readings', tmp, start=start)
             self.assertEqual([r['event_id'] for r in records], ['recent'])
 

@@ -2,7 +2,7 @@
 import argparse
 import json
 import sys
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -13,7 +13,7 @@ from services.paths import DATA_LAKE_PATH, IMAGE_CSV_PATH, PROJECT_ROOT
 def generate_report(destination: Path, base_path=DATA_LAKE_PATH, image_csv=IMAGE_CSV_PATH) -> Path:
     written = recompute_field_status(base_path, image_csv)
     lines = ['# AgroSmart - Relatorio operacional', '',
-             f'Gerado em {datetime.now(timezone.utc).isoformat()}', '',
+             f'Gerado em {datetime.now(UTC).isoformat()}', '',
              'Decisoes baseadas na ultima leitura e nas imagens associadas ao talhao nas ultimas 24 horas.',
              'Classificacao de folhas binaria; nao diagnostica doencas especificas.', '']
     for path in written:
@@ -32,6 +32,7 @@ def generate_report(destination: Path, base_path=DATA_LAKE_PATH, image_csv=IMAGE
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Gera relatorio a partir do motor de decisao integrado.')
-    parser.add_argument('--out', type=Path, default=PROJECT_ROOT / 'output' / f'relatorio_agricola_{datetime.now():%Y%m%d_%H%M%S}.md')
+    default_name = f'relatorio_agricola_{datetime.now():%Y%m%d_%H%M%S}.md'
+    parser.add_argument('--out', type=Path, default=PROJECT_ROOT / 'output' / default_name)
     args = parser.parse_args()
     print(generate_report(args.out))

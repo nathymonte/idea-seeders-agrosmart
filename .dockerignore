@@ -13,3 +13,12 @@ docs/
 *.docx
 work/
 Imagens Treinamento*/
+logs/
+.github/
+.idea/
+security/
+tests/
+*.md
+!README.md
+.trivyignore
+.coverage

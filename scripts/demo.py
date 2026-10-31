@@ -3,13 +3,13 @@ import argparse
 import csv
 import json
 import random
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from types import SimpleNamespace
 
 from services.data_lake import read_dataset, write_json
 from services.paths import PROJECT_ROOT
-from src.prepare_data import prepare_rows, CSV_FIELDS
+from src.prepare_data import CSV_FIELDS, prepare_rows
 from src.streaming.consumer import consume_messages
 from src.streaming.producer import build_event
 
@@ -19,11 +19,12 @@ def build_demo(destination: Path, reference_time: datetime | None = None) -> dic
     if destination.exists() and any(destination.iterdir()):
         raise ValueError("Use uma pasta vazia para a demonstracao; dados existentes nao serao substituidos.")
     destination.mkdir(parents=True, exist_ok=True)
-    now = reference_time or datetime.now(timezone.utc)
+    now = reference_time or datetime.now(UTC)
     lake = destination / "data_lake"
     output = destination / "output"
     output.mkdir()
-    rng = random.Random(42)
+    # Gerador pseudoaleatorio apenas para dados de demonstracao (sem uso criptografico)
+    rng = random.Random(42)  # nosec B311
     messages = []
     for index in range(24):
         timestamp = now - timedelta(minutes=(23 - index) * 10)

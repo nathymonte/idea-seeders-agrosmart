@@ -6,30 +6,31 @@ import os
 import shutil
 import tempfile
 from collections import defaultdict
-from datetime import datetime, timezone, timedelta
+from collections.abc import Iterable
+from datetime import UTC, datetime, timedelta
 from pathlib import Path
 from statistics import mean
-from typing import Any, Iterable
+from typing import Any
 
-from services.threshold_config import get_threshold_config
 from services.paths import DATA_LAKE_PATH, IMAGE_CSV_PATH, validate_field_id
+from services.threshold_config import get_threshold_config
 
 LAYERS = ("raw", "trusted", "refined", "rejected")
 
 
 def utc_now() -> datetime:
-    return datetime.now(timezone.utc)
+    return datetime.now(UTC)
 
 
 def parse_datetime(value: str | datetime | None = None) -> datetime:
     if isinstance(value, datetime):
-        return value.astimezone(timezone.utc) if value.tzinfo else value.replace(tzinfo=timezone.utc)
+        return value.astimezone(UTC) if value.tzinfo else value.replace(tzinfo=UTC)
     if not value:
         return utc_now()
 
     normalized = str(value).replace("Z", "+00:00")
     parsed = datetime.fromisoformat(normalized)
-    return parsed.astimezone(timezone.utc) if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(UTC) if parsed.tzinfo else parsed.replace(tzinfo=UTC)
 
 
 def parse_datetime_or_ingestion_time(value: str | datetime | None = None) -> datetime:
@@ -125,7 +126,7 @@ def read_dataset(
     for path in iter_jsonl_files(layer, dataset, base_path):
         if start or end:
             parts = dict(p.split("=", 1) for p in path.parts if "=" in p)
-            partition = datetime(int(parts["year"]), int(parts["month"]), int(parts["day"]), tzinfo=timezone.utc)
+            partition = datetime(int(parts["year"]), int(parts["month"]), int(parts["day"]), tzinfo=UTC)
             if start and partition.date() < start.date():
                 continue
             if end and partition.date() > end.date():
@@ -347,7 +348,8 @@ def decision_reasons(summary: dict, image_summary: dict | None, config: dict) ->
     for field, options in config["sensor_fields"].items():
         if _is_outside_expected_range(summary, config, field):
             limits = options["expected_range"]
-            reasons.append(f"{labels.get(field, field)}: {summary['average_' + field]} fora de {limits['minimum']} a {limits['maximum']}")
+            value = summary['average_' + field]
+            reasons.append(f"{labels.get(field, field)}: {value} fora de {limits['minimum']} a {limits['maximum']}")
     if image_summary and image_summary.get("sick_images", 0):
         reasons.append(f"{image_summary['sick_images']} imagem(ns) Sick no talhao e periodo")
     return reasons

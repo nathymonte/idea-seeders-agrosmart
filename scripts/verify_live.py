@@ -1,9 +1,9 @@
 import argparse
 import json
-from pathlib import Path
 from types import SimpleNamespace
 
 from playwright.sync_api import sync_playwright
+
 from services.data_lake import read_dataset, write_json
 from services.paths import PROJECT_ROOT
 from src.streaming.consumer import consume_messages

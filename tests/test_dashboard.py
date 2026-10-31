@@ -31,7 +31,7 @@ class DashboardTest(unittest.TestCase):
             with redirect_stdout(io.StringIO()):
                 build_demo(Path(tmp))
             self.run_app(Path(tmp) / 'data_lake', Path(tmp) / 'output/classificacoes.csv',
-                         "assert len(app.tabs)==3; app.sidebar.selectbox[0].select('TALHAO-02').run(); "
+                         "assert len(app.tabs)==4; app.sidebar.selectbox[0].select('TALHAO-02').run(); "
                          "assert not app.exception; assert not app.error; "
                          "assert any(m.label=='Umidade do solo' for m in app.metric); "
                          "assert any('Sem analises' in i.value for i in app.info)")
@@ -40,4 +40,4 @@ class DashboardTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             with redirect_stdout(io.StringIO()):
                 build_demo(Path(tmp))
-            self.run_app(Path(tmp) / 'data_lake', Path(tmp) / 'missing.csv', 'assert len(app.tabs)==3')
+            self.run_app(Path(tmp) / 'data_lake', Path(tmp) / 'missing.csv', 'assert len(app.tabs)==4')

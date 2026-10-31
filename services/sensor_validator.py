@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
 import math
+from datetime import UTC, datetime
 from typing import Any
-from uuid import uuid5, NAMESPACE_URL
+from uuid import NAMESPACE_URL, uuid5
 
-from services.threshold_config import get_threshold_config
 from services.paths import validate_field_id
+from services.threshold_config import get_threshold_config
 
 REQUIRED_FIELDS = (
     "field_id",
@@ -63,7 +63,7 @@ def _normalize_event(event: dict[str, Any], source: str, threshold_config: dict[
     normalized.setdefault("sensor_id", "SENSOR-001")
     normalized["source"] = source
     normalized["schema_version"] = "1.0"
-    normalized["ingested_at"] = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
+    normalized["ingested_at"] = datetime.now(UTC).isoformat().replace("+00:00", "Z")
 
     for field in threshold_config["sensor_fields"]:
         if field in normalized:
@@ -118,8 +118,8 @@ def _normalize_timestamp(value: Any) -> str | None:
     except ValueError:
         return None
     if parsed.tzinfo is None:
-        parsed = parsed.replace(tzinfo=timezone.utc)
-    return parsed.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
+        parsed = parsed.replace(tzinfo=UTC)
+    return parsed.astimezone(UTC).isoformat().replace("+00:00", "Z")
 
 
 def _to_float(value: Any) -> float | Any:

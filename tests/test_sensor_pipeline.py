@@ -18,7 +18,6 @@ from services.sensor_validator import validate_sensor_event
 from services.threshold_config import clear_threshold_config_cache, get_threshold_config
 from src.streaming.consumer import consume_messages
 
-
 TEST_CONFIG = {
     "sensor_fields": {
         "soil_moisture_percent": {

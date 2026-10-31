@@ -15,6 +15,13 @@ services:
       - ./output:/app/output
       - ./models:/app/models
       - ./data_lake:/app/data_lake
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "python", "-m", "scripts.healthcheck", "dashboard", "--url", "http://localhost:8501/_stcore/health"]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     restart: unless-stopped
 
   data-lake-consumer:
@@ -34,9 +41,45 @@ services:
     volumes:
       - ./data_lake:/app/data_lake
       - ./output:/app/output
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "python", "-m", "scripts.healthcheck", "consumer", "--max-age", "60"]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
     depends_on:
       kafka:
         condition: service_healthy
+    restart: unless-stopped
+
+  sensor-simulator:
+    build:
+      context: .
+      target: dashboard
+    command: >
+      python -m src.streaming.producer --count 0 --interval ${AGROSMART_SIM_INTERVAL:-2}
+      --scenario mixed --fields TALHAO-01 TALHAO-02 TALHAO-03
+      --invalid-rate 0.05 --duplicate-rate 0.03 --seed ${AGROSMART_SIM_SEED:-7}
+    profiles:
+      - streaming
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      KAFKA_SENSOR_TOPIC: sensor-readings
+      AGROSMART_THRESHOLDS_PATH: /app/config/thresholds.yaml
+    volumes:
+      - ./logs:/app/logs
+    healthcheck:
+      test: ["CMD", "python", "-m", "scripts.healthcheck", "producer", "--max-age", "60"]
+      interval: 15s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    depends_on:
+      kafka:
+        condition: service_healthy
+      data-lake-consumer:
+        condition: service_started
     restart: unless-stopped
 
   image-processing:
@@ -52,6 +95,16 @@ services:
       - ./models:/app/models:ro
       - ./output:/app/output
       - ./data_lake:/app/data_lake
+      - ./logs:/app/logs
+
+  process-mining:
+    build:
+      context: .
+      target: analysis
+    profiles: [analysis]
+    volumes:
+      - ./logs:/app/logs:ro
+      - ./output:/app/output
 
   kafka:
     image: apache/kafka:3.9.0

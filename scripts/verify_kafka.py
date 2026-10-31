@@ -8,6 +8,7 @@ from pathlib import Path
 from uuid import uuid4
 
 from kafka import KafkaProducer
+
 from services.data_lake import read_dataset, write_json
 from services.paths import PROJECT_ROOT
 from src.streaming.producer import build_event
@@ -30,7 +31,8 @@ def verify(bootstrap: str, destination: Path) -> dict:
     environment = {**os.environ, 'DATA_LAKE_PATH': str(destination / 'data_lake'),
                    'AGROSMART_IMAGE_CSV': str(destination / 'missing.csv')}
     command = [sys.executable, '-m', 'src.streaming.consumer', '--bootstrap', bootstrap,
-               '--topic', topic, '--group-id', topic, '--max-messages', '5', '--refine-every', '10', '--refine-seconds', '1']
+               '--topic', topic, '--group-id', topic, '--max-messages', '5', '--refine-every', '10',
+               '--refine-seconds', '1']
     completed = subprocess.run(command, cwd=PROJECT_ROOT, env=environment,
                                capture_output=True, text=True, timeout=60)
     (destination / 'consumer.log').write_text(completed.stdout + completed.stderr, encoding='utf-8')

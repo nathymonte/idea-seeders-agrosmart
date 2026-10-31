@@ -1,4 +1,57 @@
-# AgroSmart - Plataforma Integrada (Fase 6)
+# AgroSmart - Entrega Final (Fase 7)
+
+Plataforma de agricultura inteligente para cultivo de tomates: sensores IoT simulados, Kafka, Data Lake em
+camadas, classificacao de folhas, motor de decisao, dashboard Streamlit, monitoramento, pipeline DevSecOps e
+mineracao de processos.
+
+![Arquitetura final](docs/fase7/diagramas/arquitetura_final.png)
+
+## Novidades da Fase 7
+
+| Requisito | Implementacao |
+|---|---|
+| Execucao automatizada | `docker compose --profile streaming up -d` sobe Kafka, consumer, simulador continuo (`sensor-simulator`) e dashboard, com healthchecks e reinicio automatico |
+| Monitoramento | Logs JSON por componente (`logs/*.log`), heartbeats (`logs/status/*.json`), aba **Saude do sistema** no dashboard e `scripts/healthcheck.py` |
+| DevSecOps | `.github/workflows/devsecops.yml` e `scripts/ci_local.ps1`: Ruff, testes + cobertura, Bandit, pip-audit, build Docker, Trivy (config e imagem) e smoke test |
+| Seguranca | Containers sem root, dependencias atualizadas, riscos aceitos documentados em `security/RISCOS_ACEITOS.md` |
+| Mineracao de processos | `scripts/build_event_log.py` (logs -> event log CSV/XES) e `scripts/process_mining.py` (pm4py: DFG, BPMN, variantes, gargalos, lead time) |
+
+### Comandos principais
+
+```powershell
+docker compose --profile streaming up --build -d          # plataforma completa, execucao continua
+docker compose ps                                          # status e healthchecks
+docker compose logs -f data-lake-consumer                  # logs estruturados
+docker compose --profile analysis run --rm process-mining  # mineracao de processos (output/process_mining)
+powershell -ExecutionPolicy Bypass -File .\scripts\ci_local.ps1   # pipeline DevSecOps local
+```
+
+Dashboard: http://localhost:8501. Roteiro completo de execucao e evidencias: `docs/fase7/ROTEIRO_EXECUCAO.md`.
+
+### Monitoramento
+
+Cada componente grava logs JSON (uma linha por evento) e um heartbeat com contadores. A aba **Saude do
+sistema** mostra o estado de cada componente (online, atrasado, offline, finalizado), eventos recebidos,
+aceitos, rejeitados e duplicados, taxa de rejeicao, latencia de ingestao, tempo do ultimo micro-lote,
+volume por camada do Data Lake, vazao por minuto e os logs recentes. Os healthchecks do Docker usam os mesmos
+heartbeats, e o Compose reinicia servicos com falha.
+
+Variaveis novas: `AGROSMART_LOG_DIR`, `AGROSMART_LOG_LEVEL`, `AGROSMART_HEARTBEAT_SECONDS`,
+`AGROSMART_HEALTH_STALE_SECONDS`, `AGROSMART_HEALTH_OFFLINE_SECONDS`, `AGROSMART_SIM_INTERVAL`, `AGROSMART_SIM_SEED`.
+
+### Simulador
+
+```powershell
+python -m src.streaming.producer --count 0 --scenario mixed --fields TALHAO-01 TALHAO-02 TALHAO-03 `
+    --invalid-rate 0.05 --duplicate-rate 0.03
+```
+
+`--count 0` executa continuamente; `mixed` sorteia cenarios normal, random, dry, hot e high; as taxas injetam
+leituras impossiveis e reenvios para demonstrar validacao e deduplicacao.
+
+---
+
+# Historico: Plataforma Integrada (Fase 6)
 
 ## Plataforma Integrada
 

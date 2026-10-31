@@ -1,14 +1,13 @@
 import argparse
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-import tensorflow as tf
+
 import numpy as np
+import tensorflow as tf
 from PIL import Image
 
 # TensorFlow / Keras
-from tensorflow.keras.models import load_model
-
 
 ALLOWED_EXTS = {".jpg", ".jpeg", ".png", ".bmp", ".webp"}
 
@@ -104,7 +103,7 @@ def predict_folder(
 
     payload = {
         "meta": {
-            "generated_at": datetime.now(timezone.utc).isoformat(),
+            "generated_at": datetime.now(UTC).isoformat(),
             "model_file": model_path.name,
             "labels_file": labels_path.name,
             "image_size": image_size,

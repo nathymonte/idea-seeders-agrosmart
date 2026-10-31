@@ -1,0 +1,26 @@
+Name                              Stmts   Miss  Cover   Missing
+---------------------------------------------------------------
+scripts/build_event_log.py           56     21    62%   36, 45, 60-80, 84
+scripts/create_data_lake.py           7      7     0%   1-10
+scripts/demo.py                      57      4    93%   68-71
+scripts/export_dataset.py            23     23     0%   1-30
+scripts/healthcheck.py               35     10    71%   34, 40-47, 51
+scripts/historical_ingestion.py      36      6    83%   57-59, 63-65
+scripts/process_mining.py           190    116    39%   39-41, 57, 80, 94-101, 105-118, 127-138, 142-158, 163-182, 235-290, 294-316, 320
+scripts/sensor_consumer.py            6      6     0%   1-9
+scripts/sensor_producer.py            6      6     0%   1-9
+services/dashboard_data.py           36      9    75%   16-19, 28, 47-50
+services/data_lake.py               238     12    95%   58, 72, 108, 133, 140, 241, 249, 252-253, 285, 317, 430
+services/health.py                   51      5    90%   36-38, 72, 74
+services/observability.py           102     10    90%   49, 57, 71-72, 96, 117-118, 135, 143-144
+services/paths.py                     9      0   100%
+services/sensor_validator.py         87      8    91%   57, 73-77, 89, 100, 115, 121, 129
+services/threshold_config.py         90     40    56%   13-14, 37, 49, 57, 61, 65, 69, 75, 87, 89, 93-122, 126-131
+src/automation.py                    27      6    78%   27, 34-38
+src/prepare_data.py                  60     25    58%   60-84, 89
+src/streaming/consumer.py           244     54    78%   74-75, 93, 102-114, 127, 170-171, 176-180, 196, 198, 294-295, 313-367, 371
+src/streaming/producer.py           111     68    39%   25, 47-59, 77-147, 151
+---------------------------------------------------------------
+TOTAL                              1471    436    70%
+
+4 empty files skipped.

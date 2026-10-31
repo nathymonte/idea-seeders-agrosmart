@@ -1,0 +1,16 @@
+[
+  {
+    "viewport": "desktop",
+    "charts": true,
+    "image": true,
+    "export": true,
+    "horizontal_overflow": false
+  },
+  {
+    "viewport": "mobile",
+    "charts": true,
+    "image": true,
+    "export": true,
+    "horizontal_overflow": false
+  }
+]

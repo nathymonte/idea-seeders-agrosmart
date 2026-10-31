@@ -1,0 +1,55 @@
+docker : #0 building with "desktop-linux" instance using docker driver
+No C:\Users\DELL\Documents\Projetos\fiap\idea-seeders-agrosmart\scripts\ci_local.ps1:61 caractere:5
++     docker build --target dashboard -t $Image . 2>&1 | Tee-Object -Fi ...
++     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (#0 building wit...g docker driver:String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 2.69kB 0.0s done
+#1 DONE 0.0s
+
+#2 resolve image config for docker-image://docker.io/docker/dockerfile:1
+#2 DONE 1.2s
+
+#3 docker-image://docker.io/docker/dockerfile:1@sha256:4edf897a3ffa55b89f906fc8cc78afdb3f1834cc9c7083565e611a8a7d5fe99e
+#3 CACHED
+
+#4 [internal] load metadata for docker.io/library/python:3.11-slim
+#4 DONE 0.0s
+
+#5 [internal] load .dockerignore
+#5 transferring context: 250B done
+#5 DONE 0.0s
+
+#6 [dashboard 1/7] FROM docker.io/library/python:3.11-slim
+#6 DONE 0.0s
+
+#7 [internal] load build context
+#7 transferring context: 4.25MB 0.2s done
+#7 DONE 0.2s
+
+#8 [dashboard 2/7] WORKDIR /app
+#8 CACHED
+
+#9 [dashboard 3/7] RUN groupadd --system --gid 1000 agro     && useradd --system --uid 1000 --gid agro --home-dir /app --shell /usr/sbin/nologin agro
+#9 CACHED
+
+#10 [dashboard 4/7] COPY requirements-dashboard.txt .
+#10 CACHED
+
+#11 [dashboard 5/7] RUN pip install --upgrade pip && pip install -r requirements-dashboard.txt
+#11 CACHED
+
+#12 [dashboard 6/7] COPY --chown=agro:agro . .
+#12 DONE 0.1s
+
+#13 [dashboard 7/7] RUN mkdir -p data_lake output logs && chown -R agro:agro data_lake output logs
+#13 DONE 0.7s
+
+#14 exporting to image
+#14 exporting layers 0.1s done
+#14 writing image sha256:96e0a12e0a30aa305331e341baf3efc3e4a2fd7dc0b3059f1009fdf8d428f88f done
+#14 naming to docker.io/library/agrosmart-dashboard:ci done
+#14 DONE 0.1s

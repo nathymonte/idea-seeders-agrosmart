@@ -1,0 +1,137 @@
+# Pipeline DevSecOps do AgroSmart
+# Executa a cada push/pull request na main (e manualmente pela aba Actions).
+# Etapas: qualidade (lint + testes + cobertura) -> seguranca do codigo e dependencias -> build da imagem,
+# scan de vulnerabilidades do container e smoke test com o container em execucao.
+name: DevSecOps AgroSmart
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: "3.11"
+  IMAGE: agrosmart-dashboard:ci
+
+jobs:
+  quality:
+    name: 1. Qualidade (lint, testes, cobertura)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: requirements-dashboard.txt
+      - name: Instalar dependencias
+        run: pip install -r requirements-dashboard.txt ruff coverage matplotlib==3.11.2
+      - name: Lint (Ruff)
+        run: |
+          mkdir -p reports
+          ruff check . --output-format github
+          ruff check . --output-format json > reports/ruff.json
+      - name: Testes automatizados com cobertura
+        env:
+          AGROSMART_LOG_LEVEL: WARNING
+          AGROSMART_LOG_DIR: ${{ runner.temp }}/logs
+        run: |
+          coverage run -m unittest discover -s tests -v
+          coverage report --fail-under=65 | tee reports/coverage.txt
+          coverage xml -o reports/coverage.xml
+      - name: Resumo da qualidade
+        if: always()
+        run: |
+          echo "## Qualidade" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          tail -n 3 reports/coverage.txt >> "$GITHUB_STEP_SUMMARY" || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: relatorios-qualidade
+          path: reports/
+
+  security:
+    name: 2. Seguranca (SAST e dependencias)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Instalar ferramentas
+        run: pip install bandit pip-audit
+      - name: SAST do codigo (Bandit) - falha em severidade media ou alta
+        run: |
+          mkdir -p reports
+          bandit -r services src scripts dashboard -c pyproject.toml -f json -o reports/bandit.json || true
+          bandit -r services src scripts dashboard -c pyproject.toml -ll
+      - name: Vulnerabilidades nas dependencias (pip-audit)
+        run: |
+          IGNORES=$(grep -v '^#' security/pip-audit-ignore.txt | sed '/^$/d' | sed 's/^/--ignore-vuln /' | tr '\n' ' ')
+          pip-audit -r requirements-dashboard.txt -f json -o reports/pip-audit-completo.json || true
+          pip-audit -r requirements-dashboard.txt $IGNORES --desc
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: relatorios-seguranca
+          path: reports/
+
+  container:
+    name: 3. Container (build, scan Trivy e smoke test)
+    runs-on: ubuntu-latest
+    needs: [quality, security]
+    steps:
+      - uses: actions/checkout@v7
+      - name: Build da imagem Docker
+        run: docker build --target dashboard -t "$IMAGE" .
+      - name: Scan de configuracao (Dockerfile e compose)
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          scan-type: config
+          scan-ref: .
+          severity: HIGH,CRITICAL
+          exit-code: "1"
+      - name: Relatorio de vulnerabilidades da imagem
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: ${{ env.IMAGE }}
+          format: table
+          output: trivy-imagem.txt
+          severity: MEDIUM,HIGH,CRITICAL
+          trivyignores: .trivyignore
+          exit-code: "0"
+      - name: Gate - nenhuma vulnerabilidade CRITICA corrigivel na imagem
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: ${{ env.IMAGE }}
+          severity: CRITICAL
+          ignore-unfixed: true
+          trivyignores: .trivyignore
+          exit-code: "1"
+      - name: Smoke test - container em execucao e saudavel
+        run: |
+          docker run -d --name agrosmart-smoke -p 8501:8501 "$IMAGE"
+          for i in $(seq 1 30); do
+            status=$(docker inspect --format '{{.State.Health.Status}}' agrosmart-smoke)
+            echo "tentativa $i: $status"
+            [ "$status" = "healthy" ] && break
+            sleep 5
+          done
+          curl --fail --silent http://localhost:8501/_stcore/health
+          docker logs agrosmart-smoke | tail -n 20
+          [ "$(docker inspect --format '{{.State.Health.Status}}' agrosmart-smoke)" = "healthy" ]
+      - name: Encerrar container
+        if: always()
+        run: docker rm -f agrosmart-smoke || true
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: relatorio-trivy
+          path: trivy-imagem.txt

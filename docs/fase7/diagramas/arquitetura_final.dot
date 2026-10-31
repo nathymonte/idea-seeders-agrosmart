@@ -1,0 +1,47 @@
+digraph AgroSmart {
+  graph [rankdir=LR, fontname="Helvetica", fontsize=13, nodesep=0.35, ranksep=0.6, pad=0.3, bgcolor="white",
+         label="AgroSmart - Arquitetura final (Fase 7)", labelloc=t, fontcolor="#172b25"];
+  node  [shape=box, style="rounded,filled", fontname="Helvetica", fontsize=11, color="#5c6f68", fillcolor="#ffffff",
+         fontcolor="#172b25", margin="0.18,0.08"];
+  edge  [fontname="Helvetica", fontsize=9, color="#5c6f68", fontcolor="#5c6f68", arrowsize=0.7];
+
+  subgraph cluster_in { label="Entrada"; style="rounded,filled"; fillcolor="#eef5f1"; color="#c9dcd2";
+    sim   [label="Simulador IoT\n(producer: 3 talhões,\ncenários, falhas injetadas)"];
+    csv   [label="CSV histórico\n(historical_ingestion)"];
+    img   [label="Imagens de folhas\n(input_images)"];
+  }
+  subgraph cluster_proc { label="Processamento"; style="rounded,filled"; fillcolor="#eef3f8"; color="#cbd8e4";
+    kafka [label="Apache Kafka 3.9\n(tópico sensor-readings)", fillcolor="#f7fafc"];
+    cons  [label="Consumer\nvalidação YAML + dedup\nmicro-lotes (10 ev / 5 s)"];
+    cnn   [label="Modelo CNN (Keras)\nHealth / Sick"];
+  }
+  subgraph cluster_lake { label="Data Lake (JSONL particionado)"; style="rounded,filled"; fillcolor="#f6f3ec"; color="#e1d8c6";
+    raw [label="raw"]; trusted [label="trusted"]; rejected [label="rejected"]; refined [label="refined\n(status por talhão)"];
+  }
+  subgraph cluster_dec { label="Automação"; style="rounded,filled"; fillcolor="#f8eeee"; color="#e5cfcf";
+    motor [label="Motor de decisão\n(thresholds.yaml + imagens)\nnivel normal / medium / high"];
+  }
+  subgraph cluster_out { label="Saída"; style="rounded,filled"; fillcolor="#eef5f1"; color="#c9dcd2";
+    dash  [label="Dashboard Streamlit\nAmbiente | Folhas | Dados |\nSaúde do sistema"];
+    rep   [label="Relatório + CSV\n(automation, export)"];
+  }
+  subgraph cluster_obs { label="Observabilidade e processos"; style="rounded,filled"; fillcolor="#f3f0f8"; color="#d9d1e6";
+    logs  [label="Logs JSON + heartbeats\n(logs/, logs/status/)"];
+    pm    [label="Mineração de processos\nevent log -> pm4py\n(variantes, gargalos)"];
+  }
+  subgraph cluster_ops { label="DevSecOps"; style="rounded,filled"; fillcolor="#f2f2f2"; color="#d6d6d6";
+    ci    [label="GitHub Actions / ci_local.ps1\nRuff + testes + cobertura\nBandit + pip-audit\nbuild + Trivy + smoke test"];
+    dock  [label="Docker Compose\nimagens dashboard / vision / analysis\nhealthchecks + usuário não-root"];
+  }
+
+  sim -> kafka [label="JSON"];
+  kafka -> cons;
+  csv -> raw; csv -> cons [style=dashed, label="mesma validação"];
+  cons -> raw; cons -> trusted [label="válido"]; cons -> rejected [label="inválido /\nduplicado"];
+  img -> cnn -> motor [label="previsões\npor talhão"];
+  trusted -> motor; motor -> refined;
+  refined -> dash; trusted -> dash; refined -> rep;
+  sim -> logs [style=dotted]; cons -> logs [style=dotted]; dash -> logs [style=dotted];
+  logs -> dash [style=dotted, label="status"]; logs -> pm;
+  ci -> dock [label="imagem\naprovada"];
+}

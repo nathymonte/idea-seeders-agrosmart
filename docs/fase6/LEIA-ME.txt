@@ -1,0 +1,10 @@
+AgroSmart Fase 6
+
+Documento: AgroSmart_Fase6_Plataforma_Integrada.docx
+Evidências: evidencias/
+Código reproduzível: codigo/ no ZIP
+Vídeo: pendente
+
+A simulação desta entrega contém 72 leituras aceitas e 1 rejeitada.
+As capturas e verificações anteriores do dashboard são de uma execução separada.
+O visualizador HTML mostra o registro real; não representa TinkerCad.

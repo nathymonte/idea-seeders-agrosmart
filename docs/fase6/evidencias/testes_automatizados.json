@@ -1,0 +1,6 @@
+{
+  "command": "python -m unittest discover -s tests -v",
+  "exit_code": 0,
+  "tests": 31,
+  "result": "OK"
+}

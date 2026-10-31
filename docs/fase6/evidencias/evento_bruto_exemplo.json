@@ -1,0 +1,11 @@
+{
+  "air_humidity_percent": 67.5,
+  "air_temperature_celsius": 46.0,
+  "event_id": "demo-TALHAO-03-023",
+  "event_timestamp": "2026-10-03T20:08:42.800508Z",
+  "field_id": "TALHAO-03",
+  "luminosity_lux": 69600.0,
+  "sensor_id": "SENSOR-TALHAO-03",
+  "simulation_scenario": "high",
+  "soil_moisture_percent": 12.5
+}

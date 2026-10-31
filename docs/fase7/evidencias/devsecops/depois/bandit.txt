@@ -1,0 +1,112 @@
+Run started:2026-10-31 21:48:43.257630+00:00
+
+Test results:
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: scripts/verify_dashboard.py:20:12
+19	            page.locator('.js-plotly-plot').first.wait_for(timeout=30000)
+20	            assert page.get_by_text('TALHAO-01', exact=False).count() > 0
+21	            assert page.locator('[data-testid="stException"]').count() == 0
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: scripts/verify_dashboard.py:21:12
+20	            assert page.get_by_text('TALHAO-01', exact=False).count() > 0
+21	            assert page.locator('[data-testid="stException"]').count() == 0
+22	            page.screenshot(path=str(destination / f'{name}-ambiente.png'), full_page=True)
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: scripts/verify_dashboard.py:23:12
+22	            page.screenshot(path=str(destination / f'{name}-ambiente.png'), full_page=True)
+23	            assert page.evaluate('document.documentElement.scrollWidth <= window.innerWidth + 2')
+24	            page.locator('.js-plotly-plot').first.scroll_into_view_if_needed()
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: scripts/verify_dashboard.py:29:12
+28	            image = page.locator('[data-testid="stImage"] img').first
+29	            assert image.evaluate('(img) => img.complete && img.naturalWidth > 0')
+30	            page.screenshot(path=str(destination / f'{name}-folhas.png'), full_page=True)
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: scripts/verify_dashboard.py:36:12
+35	            exported.save_as(str(destination / f'{name}-leituras.csv'))
+36	            assert (destination / f'{name}-leituras.csv').stat().st_size > 100
+37	            results.append({'viewport': name, 'charts': True, 'image': True, 'export': True,
+
+--------------------------------------------------
+>> Issue: [B404:blacklist] Consider possible security implications associated with the subprocess module.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/blacklists/blacklist_imports.html#b404-import-subprocess
+   Location: scripts/verify_kafka.py:5:0
+4	import os
+5	import subprocess
+6	import sys
+
+--------------------------------------------------
+>> Issue: [B603:subprocess_without_shell_equals_true] subprocess call - check for execution of untrusted input.
+   Severity: Low   Confidence: High
+   CWE: CWE-78 (https://cwe.mitre.org/data/definitions/78.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b603_subprocess_without_shell_equals_true.html
+   Location: scripts/verify_kafka.py:36:16
+35	               '--refine-seconds', '1']
+36	    completed = subprocess.run(command, cwd=PROJECT_ROOT, env=environment,
+37	                               capture_output=True, text=True, timeout=60)
+38	    (destination / 'consumer.log').write_text(completed.stdout + completed.stderr, encoding='utf-8')
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: scripts/verify_kafka.py:44:4
+43	              for layer in ['raw', 'trusted', 'rejected']}
+44	    assert counts == {'raw': 5, 'trusted': 2, 'rejected': 3}, counts
+45	    statuses = {p.stem: json.loads(p.read_text())['attention_level']
+
+--------------------------------------------------
+>> Issue: [B101:assert_used] Use of assert detected. The enclosed code will be removed when compiling to optimised byte code.
+   Severity: Low   Confidence: High
+   CWE: CWE-703 (https://cwe.mitre.org/data/definitions/703.html)
+   More Info: https://bandit.readthedocs.io/en/1.9.4/plugins/b101_assert_used.html
+   Location: scripts/verify_kafka.py:47:4
+46	                for p in (lake / 'refined/field_status').glob('*.json')}
+47	    assert statuses == {'TALHAO-01': 'normal', 'TALHAO-02': 'high'}, statuses
+48	    result = {'topic': topic, 'counts': counts, 'statuses': statuses, 'real_kafka': True}
+
+--------------------------------------------------
+
+Code scanned:
+	Total lines of code: 2443
+	Total lines skipped (#nosec): 0
+	Total potential issues skipped due to specifically being disabled (e.g., #nosec BXXX): 3
+
+Run metrics:
+	Total issues (by severity):
+		Undefined: 0
+		Low: 9
+		Medium: 0
+		High: 0
+	Total issues (by confidence):
+		Undefined: 0
+		Low: 0
+		Medium: 0
+		High: 9
+Files skipped (0):

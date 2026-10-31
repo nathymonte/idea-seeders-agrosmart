@@ -1,0 +1,3 @@
+-r requirements-dashboard.txt
+pm4py==2.7.23.11
+matplotlib==3.11.2

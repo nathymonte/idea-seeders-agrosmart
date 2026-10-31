@@ -1,0 +1,13 @@
+{
+  "counts": {
+    "raw": 5,
+    "rejected": 3,
+    "trusted": 2
+  },
+  "real_kafka": true,
+  "statuses": {
+    "TALHAO-01": "normal",
+    "TALHAO-02": "high"
+  },
+  "topic": "agrosmart-test-7f2c533f9ff0"
+}

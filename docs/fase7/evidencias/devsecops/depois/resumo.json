@@ -1,0 +1,22 @@
+﻿{
+    "1. Qualidade: lint (Ruff) + testes + cobertura":  {
+                                                           "ok":  true,
+                                                           "seconds":  135
+                                                       },
+    "2. Seguranca: SAST (Bandit) + dependencias (pip-audit)":  {
+                                                                   "ok":  true,
+                                                                   "seconds":  148.2
+                                                               },
+    "3. Build da imagem Docker":  {
+                                      "ok":  true,
+                                      "seconds":  4.5
+                                  },
+    "4. Trivy: configuracao (Dockerfile) + vulnerabilidades da imagem":  {
+                                                                             "ok":  true,
+                                                                             "seconds":  121.8
+                                                                         },
+    "5. Smoke test: container em execucao e saudavel":  {
+                                                            "ok":  true,
+                                                            "seconds":  12
+                                                        }
+}

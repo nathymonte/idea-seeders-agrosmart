@@ -1,0 +1,23 @@
+<!doctype html><html lang="pt-BR"><meta charset="utf-8"><style>body{font:20px Arial;margin:36px;color:#172026;background:#fff}h1{font-size:32px}p{line-height:1.45}table{border-collapse:collapse;width:100%}td,th{border:1px solid #ccd6dc;padding:12px;text-align:left}th{background:#e3edf2}pre{font:16px Consolas;white-space:pre-wrap;background:#f2f5f6;padding:18px}section{display:grid;grid-template-columns:1fr 1fr;gap:26px}</style><h1>AgroSmart · Execução da simulação Python</h1><p>Visualizador do registro real de execução · scripts.demo · sem broker nesta execução<br>Referência UTC: 2026-10-03T20:08:42.800508+00:00</p><p><b>73 eventos recebidos · 72 aceitos · 1 rejeitado · 3 talhões</b></p><table><tr><th>Talhão</th><th>Atenção</th><th>Solo %</th><th>Temperatura °C</th></tr><tr><td>TALHAO-01</td><td>normal</td><td>47.5</td><td>23.5</td></tr><tr><td>TALHAO-02</td><td>medium</td><td>12.5</td><td>23.5</td></tr><tr><td>TALHAO-03</td><td>high</td><td>12.5</td><td>46.0</td></tr></table><section><div><h2>Evento gerado</h2><pre>{
+  &quot;air_humidity_percent&quot;: 67.5,
+  &quot;air_temperature_celsius&quot;: 46.0,
+  &quot;event_id&quot;: &quot;demo-TALHAO-03-023&quot;,
+  &quot;event_timestamp&quot;: &quot;2026-10-03T20:08:42.800508Z&quot;,
+  &quot;field_id&quot;: &quot;TALHAO-03&quot;,
+  &quot;luminosity_lux&quot;: 69600.0,
+  &quot;sensor_id&quot;: &quot;SENSOR-TALHAO-03&quot;,
+  &quot;simulation_scenario&quot;: &quot;high&quot;,
+  &quot;soil_moisture_percent&quot;: 12.5
+}</pre></div><div><h2>Saída do pipeline</h2><pre>Trusted: demo-TALHAO-02-022
+Trusted: demo-TALHAO-03-022
+Trusted: demo-TALHAO-01-023
+Trusted: demo-TALHAO-02-023
+Trusted: demo-TALHAO-03-023
+Rejected: demo-invalid -&gt; campo numerico invalido: soil_moisture_percent
+{
+  &quot;consumed&quot;: 73,
+  &quot;accepted&quot;: 72,
+  &quot;rejected&quot;: 1,
+  &quot;reference_time&quot;: &quot;2026-10-03T20:08:42.800508+00:00&quot;,
+  &quot;simulation&quot;: true
+}</pre><p>Rejeição demonstrada: valor não numérico de umidade do solo.</p></div></section></html>

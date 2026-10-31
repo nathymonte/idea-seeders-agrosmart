@@ -1,0 +1,32 @@
+[project]
+name = "agrosmart"
+version = "7.0.0"
+description = "AgroSmart - plataforma de agricultura inteligente (FIAP, Fase 7)"
+requires-python = ">=3.11"
+
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+extend-exclude = ["venv311", ".venv", "work", "docs", "artifacts"]
+
+[tool.ruff.lint]
+# E/W: estilo PEP 8 | F: erros (pyflakes) | I: imports | UP: sintaxe moderna | B: bugs provaveis | SIM: simplificacoes
+select = ["E", "W", "F", "I", "UP", "B", "SIM"]
+ignore = ["SIM117"]  # with aninhados nos testes deixam o contexto mais legivel
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["services", "src", "scripts", "dashboard"]
+
+[tool.coverage.run]
+source = ["services", "src", "scripts"]
+omit = ["src/predict_folder.py", "scripts/verify_*.py", "scripts/start_dashboard.ps1"]
+
+[tool.coverage.report]
+show_missing = true
+skip_empty = true
+
+[tool.bandit]
+exclude_dirs = ["tests", "venv311", ".venv", "work"]

@@ -1,0 +1,75 @@
+test_demo_filters_and_tabs (test_dashboard.DashboardTest.test_demo_filters_and_tabs) ... ok
+test_empty_dashboard (test_dashboard.DashboardTest.test_empty_dashboard) ... ok
+test_sensor_only_dashboard (test_dashboard.DashboardTest.test_sensor_only_dashboard) ... ok
+test_automation_report_uses_decision_engine (test_observability.HealthcheckAndReportTest.test_automation_report_uses_decision_engine) ... ok
+test_healthcheck_heartbeat_and_url_guard (test_observability.HealthcheckAndReportTest.test_healthcheck_heartbeat_and_url_guard) ... ok
+test_consumer_metrics_count_outcomes (test_observability.ObservabilityTest.test_consumer_metrics_count_outcomes) ... {"ts": "2026-10-31T21:46:27.384637Z", "level": "INFO", "component": "consumer", "message": "Recebida pelo consumer", "activity": "Recebida pelo consumer", "case_id": "ok", "field_id": "TALHAO-01", "ingestion_latency_s": 5924787.385}
+{"ts": "2026-10-31T21:46:27.387282Z", "level": "INFO", "component": "consumer", "message": "Gravada na raw", "activity": "Gravada na raw", "case_id": "ok", "field_id": "TALHAO-01"}
+{"ts": "2026-10-31T21:46:27.390728Z", "level": "INFO", "component": "consumer", "message": "Validada", "activity": "Validada", "case_id": "ok", "field_id": "TALHAO-01", "out_of_range_fields": []}
+{"ts": "2026-10-31T21:46:27.391900Z", "level": "INFO", "component": "consumer", "message": "Gravada na trusted", "activity": "Gravada na trusted", "case_id": "ok", "field_id": "TALHAO-01"}
+{"ts": "2026-10-31T21:46:27.393418Z", "level": "INFO", "component": "consumer", "message": "Recebida pelo consumer", "activity": "Recebida pelo consumer", "case_id": "dup", "field_id": "TALHAO-01", "ingestion_latency_s": 5924787.393}
+{"ts": "2026-10-31T21:46:27.395273Z", "level": "INFO", "component": "consumer", "message": "Gravada na raw", "activity": "Gravada na raw", "case_id": "dup", "field_id": "TALHAO-01"}
+{"ts": "2026-10-31T21:46:27.396799Z", "level": "INFO", "component": "consumer", "message": "Validada", "activity": "Validada", "case_id": "dup", "field_id": "TALHAO-01", "out_of_range_fields": []}
+{"ts": "2026-10-31T21:46:27.397293Z", "level": "INFO", "component": "consumer", "message": "Gravada na trusted", "activity": "Gravada na trusted", "case_id": "dup", "field_id": "TALHAO-01"}
+{"ts": "2026-10-31T21:46:27.397854Z", "level": "INFO", "component": "consumer", "message": "Recebida pelo consumer", "activity": "Recebida pelo consumer", "case_id": "dup", "field_id": "TALHAO-01", "ingestion_latency_s": 5924787.398}
+{"ts": "2026-10-31T21:46:27.398777Z", "level": "INFO", "component": "consumer", "message": "Gravada na raw", "activity": "Gravada na raw", "case_id": "dup", "field_id": "TALHAO-01"}
+{"ts": "2026-10-31T21:46:27.400985Z", "level": "INFO", "component": "consumer", "message": "Descartada (duplicada)", "activity": "Descartada (duplicada)", "case_id": "dup", "field_id": "TALHAO-01", "errors": ["event_id duplicado: dup"]}
+{"ts": "2026-10-31T21:46:27.401572Z", "level": "INFO", "component": "consumer", "message": "Recebida pelo consumer", "activity": "Recebida pelo consumer", "case_id": "bad", "field_id": "TALHAO-01", "ingestion_latency_s": 5924787.402}
+{"ts": "2026-10-31T21:46:27.402640Z", "level": "INFO", "component": "consumer", "message": "Gravada na raw", "activity": "Gravada na raw", "case_id": "bad", "field_id": "TALHAO-01"}
+{"ts": "2026-10-31T21:46:27.403738Z", "level": "INFO", "component": "consumer", "message": "Rejeitada (validacao)", "activity": "Rejeitada (validacao)", "case_id": "bad", "field_id": "TALHAO-01", "errors": ["soil_moisture_percent fora da faixa permitida (0 a 100): 150.0"]}
+{"ts": "2026-10-31T21:46:27.404418Z", "level": "INFO", "component": "consumer", "message": "Recebida pelo consumer", "activity": "Recebida pelo consumer", "case_id": "sem-id-8871c56f82c2", "field_id": null, "ingestion_latency_s": null}
+{"ts": "2026-10-31T21:46:27.407420Z", "level": "INFO", "component": "consumer", "message": "Gravada na raw", "activity": "Gravada na raw", "case_id": "sem-id-8871c56f82c2"}
+{"ts": "2026-10-31T21:46:27.410000Z", "level": "INFO", "component": "consumer", "message": "Rejeitada (payload invalido)", "activity": "Rejeitada (payload invalido)", "case_id": "sem-id-8871c56f82c2", "errors": ["payload JSON invalido: Expecting property name enclosed in double quotes"]}
+{"ts": "2026-10-31T21:46:27.420818Z", "level": "INFO", "component": "consumer", "message": "lote consolidado", "batch_size": 2, "refine_ms": 10.0, "fields": ["TALHAO-01"]}
+{"ts": "2026-10-31T21:46:27.421362Z", "level": "INFO", "component": "consumer", "message": "Consolidada na refined", "activity": "Consolidada na refined", "case_id": "ok", "field_id": "TALHAO-01", "batch_size": 2}
+{"ts": "2026-10-31T21:46:27.421671Z", "level": "INFO", "component": "consumer", "message": "Decisao gerada", "activity": "Decisao gerada", "case_id": "ok", "field_id": "TALHAO-01", "attention_level": "normal", "decided_by": "dup"}
+{"ts": "2026-10-31T21:46:27.422050Z", "level": "INFO", "component": "consumer", "message": "Consolidada na refined", "activity": "Consolidada na refined", "case_id": "dup", "field_id": "TALHAO-01", "batch_size": 2}
+{"ts": "2026-10-31T21:46:27.422371Z", "level": "INFO", "component": "consumer", "message": "Decisao gerada", "activity": "Decisao gerada", "case_id": "dup", "field_id": "TALHAO-01", "attention_level": "normal", "decided_by": "dup"}
+ok
+test_heartbeat_roundtrip_and_states (test_observability.ObservabilityTest.test_heartbeat_roundtrip_and_states) ... ok
+test_json_logs_carry_process_activity (test_observability.ObservabilityTest.test_json_logs_carry_process_activity) ... {"ts": "2026-10-31T21:46:27.437020Z", "level": "INFO", "component": "test-component", "message": "Validada", "activity": "Validada", "case_id": "evt-1", "field_id": "TALHAO-01"}
+ok
+test_producer_fault_injection (test_observability.ObservabilityTest.test_producer_fault_injection) ... ok
+test_system_overview_reports_layers_and_overall_state (test_observability.ObservabilityTest.test_system_overview_reports_layers_and_overall_state) ... {"ts": "2026-10-31T21:46:27.443197Z", "level": "INFO", "component": "consumer", "message": "Recebida pelo consumer", "activity": "Recebida pelo consumer", "case_id": "a", "field_id": "TALHAO-01", "ingestion_latency_s": 5924787.443}
+{"ts": "2026-10-31T21:46:27.445411Z", "level": "INFO", "component": "consumer", "message": "Gravada na raw", "activity": "Gravada na raw", "case_id": "a", "field_id": "TALHAO-01"}
+{"ts": "2026-10-31T21:46:27.447694Z", "level": "INFO", "component": "consumer", "message": "Validada", "activity": "Validada", "case_id": "a", "field_id": "TALHAO-01", "out_of_range_fields": []}
+{"ts": "2026-10-31T21:46:27.448183Z", "level": "INFO", "component": "consumer", "message": "Gravada na trusted", "activity": "Gravada na trusted", "case_id": "a", "field_id": "TALHAO-01"}
+{"ts": "2026-10-31T21:46:27.460887Z", "level": "INFO", "component": "consumer", "message": "lote consolidado", "batch_size": 1, "refine_ms": 10.9, "fields": ["TALHAO-01"]}
+{"ts": "2026-10-31T21:46:27.461479Z", "level": "INFO", "component": "consumer", "message": "Consolidada na refined", "activity": "Consolidada na refined", "case_id": "a", "field_id": "TALHAO-01", "batch_size": 1}
+{"ts": "2026-10-31T21:46:27.461922Z", "level": "INFO", "component": "consumer", "message": "Decisao gerada", "activity": "Decisao gerada", "case_id": "a", "field_id": "TALHAO-01", "attention_level": "normal", "decided_by": "a"}
+ok
+test_atomic_json_failure_preserves_previous_result (test_phase6.Phase6Test.test_atomic_json_failure_preserves_previous_result) ... ok
+test_bounded_query_skips_old_partition (test_phase6.Phase6Test.test_bounded_query_skips_old_partition) ... ok
+test_complete_demo_preserves_layers_and_three_decisions (test_phase6.Phase6Test.test_complete_demo_preserves_layers_and_three_decisions) ... ok
+test_failed_refinement_does_not_acknowledge (test_phase6.Phase6Test.test_failed_refinement_does_not_acknowledge) ... ok
+test_idle_poll_flushes_before_acknowledgement (test_phase6.Phase6Test.test_idle_poll_flushes_before_acknowledgement) ... ok
+test_images_are_scoped_by_field_and_period (test_phase6.Phase6Test.test_images_are_scoped_by_field_and_period) ... ok
+test_incremental_refinement_preserves_other_fields_and_ignores_old_partitions (test_phase6.Phase6Test.test_incremental_refinement_preserves_other_fields_and_ignores_old_partitions) ... ok
+test_invalid_yaml_has_clear_error (test_phase6.Phase6Test.test_invalid_yaml_has_clear_error) ... ok
+test_keyboard_interrupt_flushes_pending_batch (test_phase6.Phase6Test.test_keyboard_interrupt_flushes_pending_batch) ... ok
+test_last_reading_risk_is_not_hidden_by_healthy_history (test_phase6.Phase6Test.test_last_reading_risk_is_not_hidden_by_healthy_history) ... ok
+test_late_event_does_not_regress_latest_status (test_phase6.Phase6Test.test_late_event_does_not_regress_latest_status) ... ok
+test_legacy_unassigned_images_do_not_raise_field_risk (test_phase6.Phase6Test.test_legacy_unassigned_images_do_not_raise_field_risk) ... ok
+test_malformed_identifiers_do_not_interrupt_next_message (test_phase6.Phase6Test.test_malformed_identifiers_do_not_interrupt_next_message) ... ok
+test_missing_or_unsafe_field_is_rejected (test_phase6.Phase6Test.test_missing_or_unsafe_field_is_rejected) ... ok
+test_nonfinite_sensor_values_are_rejected (test_phase6.Phase6Test.test_nonfinite_sensor_values_are_rejected) ... ok
+test_partition_dates_use_utc (test_phase6.Phase6Test.test_partition_dates_use_utc) ... ok
+test_prepare_rows_uses_explicit_metadata_without_diagnosis (test_phase6.Phase6Test.test_prepare_rows_uses_explicit_metadata_without_diagnosis) ... ok
+test_event_log_from_json_logs (test_process_mining.ProcessMiningTest.test_event_log_from_json_logs) ... ok
+test_variants_bottlenecks_and_summary (test_process_mining.ProcessMiningTest.test_variants_bottlenecks_and_summary) ... ok
+test_attention_levels_follow_yaml_expected_ranges (test_sensor_pipeline.SensorPipelineTest.test_attention_levels_follow_yaml_expected_ranges) ... ok
+test_duplicate_event_is_rejected (test_sensor_pipeline.SensorPipelineTest.test_duplicate_event_is_rejected) ... ok
+test_historical_ingestion_writes_all_layers_once (test_sensor_pipeline.SensorPipelineTest.test_historical_ingestion_writes_all_layers_once) ... ok
+test_invalid_range_is_rejected (test_sensor_pipeline.SensorPipelineTest.test_invalid_range_is_rejected) ... ok
+test_invalid_timestamp_is_preserved_in_raw_and_rejected (test_sensor_pipeline.SensorPipelineTest.test_invalid_timestamp_is_preserved_in_raw_and_rejected) ... ok
+test_micro_batch_refines_on_threshold_and_pending_batch_only_for_accepted_events (test_sensor_pipeline.SensorPipelineTest.test_micro_batch_refines_on_threshold_and_pending_batch_only_for_accepted_events) ... ok
+test_multiple_fields_generate_separate_refined_files (test_sensor_pipeline.SensorPipelineTest.test_multiple_fields_generate_separate_refined_files) ... ok
+test_reprocessing_same_csv_rejects_duplicates_without_trusted_duplication (test_sensor_pipeline.SensorPipelineTest.test_reprocessing_same_csv_rejects_duplicates_without_trusted_duplication) ... ok
+test_threshold_config_is_loaded_from_yaml (test_sensor_pipeline.SensorPipelineTest.test_threshold_config_is_loaded_from_yaml) ... ok
+test_trusted_record_generates_refined_status (test_sensor_pipeline.SensorPipelineTest.test_trusted_record_generates_refined_status) ... ok
+test_valid_event_is_normalized (test_sensor_pipeline.SensorPipelineTest.test_valid_event_is_normalized) ... ok
+
+----------------------------------------------------------------------
+Ran 40 tests in 11.416s
+
+OK

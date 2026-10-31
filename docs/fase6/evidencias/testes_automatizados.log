@@ -1,0 +1,36 @@
+test_demo_filters_and_tabs (test_dashboard.DashboardTest.test_demo_filters_and_tabs) ... ok
+test_empty_dashboard (test_dashboard.DashboardTest.test_empty_dashboard) ... ok
+test_sensor_only_dashboard (test_dashboard.DashboardTest.test_sensor_only_dashboard) ... ok
+test_atomic_json_failure_preserves_previous_result (test_phase6.Phase6Test.test_atomic_json_failure_preserves_previous_result) ... ok
+test_bounded_query_skips_old_partition (test_phase6.Phase6Test.test_bounded_query_skips_old_partition) ... ok
+test_complete_demo_preserves_layers_and_three_decisions (test_phase6.Phase6Test.test_complete_demo_preserves_layers_and_three_decisions) ... ok
+test_failed_refinement_does_not_acknowledge (test_phase6.Phase6Test.test_failed_refinement_does_not_acknowledge) ... ok
+test_idle_poll_flushes_before_acknowledgement (test_phase6.Phase6Test.test_idle_poll_flushes_before_acknowledgement) ... ok
+test_images_are_scoped_by_field_and_period (test_phase6.Phase6Test.test_images_are_scoped_by_field_and_period) ... ok
+test_incremental_refinement_preserves_other_fields_and_ignores_old_partitions (test_phase6.Phase6Test.test_incremental_refinement_preserves_other_fields_and_ignores_old_partitions) ... ok
+test_invalid_yaml_has_clear_error (test_phase6.Phase6Test.test_invalid_yaml_has_clear_error) ... ok
+test_keyboard_interrupt_flushes_pending_batch (test_phase6.Phase6Test.test_keyboard_interrupt_flushes_pending_batch) ... ok
+test_last_reading_risk_is_not_hidden_by_healthy_history (test_phase6.Phase6Test.test_last_reading_risk_is_not_hidden_by_healthy_history) ... ok
+test_late_event_does_not_regress_latest_status (test_phase6.Phase6Test.test_late_event_does_not_regress_latest_status) ... ok
+test_legacy_unassigned_images_do_not_raise_field_risk (test_phase6.Phase6Test.test_legacy_unassigned_images_do_not_raise_field_risk) ... ok
+test_malformed_identifiers_do_not_interrupt_next_message (test_phase6.Phase6Test.test_malformed_identifiers_do_not_interrupt_next_message) ... ok
+test_missing_or_unsafe_field_is_rejected (test_phase6.Phase6Test.test_missing_or_unsafe_field_is_rejected) ... ok
+test_nonfinite_sensor_values_are_rejected (test_phase6.Phase6Test.test_nonfinite_sensor_values_are_rejected) ... ok
+test_partition_dates_use_utc (test_phase6.Phase6Test.test_partition_dates_use_utc) ... ok
+test_prepare_rows_uses_explicit_metadata_without_diagnosis (test_phase6.Phase6Test.test_prepare_rows_uses_explicit_metadata_without_diagnosis) ... ok
+test_attention_levels_follow_yaml_expected_ranges (test_sensor_pipeline.SensorPipelineTest.test_attention_levels_follow_yaml_expected_ranges) ... ok
+test_duplicate_event_is_rejected (test_sensor_pipeline.SensorPipelineTest.test_duplicate_event_is_rejected) ... ok
+test_historical_ingestion_writes_all_layers_once (test_sensor_pipeline.SensorPipelineTest.test_historical_ingestion_writes_all_layers_once) ... ok
+test_invalid_range_is_rejected (test_sensor_pipeline.SensorPipelineTest.test_invalid_range_is_rejected) ... ok
+test_invalid_timestamp_is_preserved_in_raw_and_rejected (test_sensor_pipeline.SensorPipelineTest.test_invalid_timestamp_is_preserved_in_raw_and_rejected) ... ok
+test_micro_batch_refines_on_threshold_and_pending_batch_only_for_accepted_events (test_sensor_pipeline.SensorPipelineTest.test_micro_batch_refines_on_threshold_and_pending_batch_only_for_accepted_events) ... ok
+test_multiple_fields_generate_separate_refined_files (test_sensor_pipeline.SensorPipelineTest.test_multiple_fields_generate_separate_refined_files) ... ok
+test_reprocessing_same_csv_rejects_duplicates_without_trusted_duplication (test_sensor_pipeline.SensorPipelineTest.test_reprocessing_same_csv_rejects_duplicates_without_trusted_duplication) ... ok
+test_threshold_config_is_loaded_from_yaml (test_sensor_pipeline.SensorPipelineTest.test_threshold_config_is_loaded_from_yaml) ... ok
+test_trusted_record_generates_refined_status (test_sensor_pipeline.SensorPipelineTest.test_trusted_record_generates_refined_status) ... ok
+test_valid_event_is_normalized (test_sensor_pipeline.SensorPipelineTest.test_valid_event_is_normalized) ... ok
+
+----------------------------------------------------------------------
+Ran 31 tests in 21.776s
+
+OK

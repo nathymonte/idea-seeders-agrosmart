@@ -1,0 +1,13 @@
+﻿image_name,image_path,predicted_label,predicted_label_pt,confidence,score_health,score_sick,actual_label,is_correct,data_analise,field_id,localidade,anomalia,metadata_source,label_source
+health 1.jpg,health 1.jpg,Health,Saudavel,99.67,99.67,0.33,Health,True,2026-10-03T20:08:42.800508+00:00,TALHAO-01,TALHAO-01,Nenhuma,simulation,filename_hint
+health 2.jpg,health 2.jpg,Health,Saudavel,98.82,98.82,1.18,Health,True,2026-10-03T20:07:42.800508+00:00,TALHAO-01,TALHAO-01,Nenhuma,simulation,filename_hint
+health 3.jpg,health 3.jpg,Health,Saudavel,100.0,100.0,0.0,Health,True,2026-10-03T20:06:42.800508+00:00,TALHAO-01,TALHAO-01,Nenhuma,simulation,filename_hint
+health 4.jpg,health 4.jpg,Health,Saudavel,81.68,81.68,18.32,Health,True,2026-10-03T20:05:42.800508+00:00,TALHAO-01,TALHAO-01,Nenhuma,simulation,filename_hint
+health 5.jpg,health 5.jpg,Health,Saudavel,89.61,89.61,10.39,Health,True,2026-10-03T20:04:42.800508+00:00,TALHAO-01,TALHAO-01,Nenhuma,simulation,filename_hint
+health 6.jpg,health 6.jpg,Sick,Indicio de doenca,98.64,1.36,98.64,Health,False,2026-10-03T20:03:42.800508+00:00,TALHAO-03,TALHAO-03,Nao diagnosticada,simulation,filename_hint
+sick 1.jpg,sick 1.jpg,Sick,Indicio de doenca,97.97,2.03,97.97,Sick,True,2026-10-03T20:02:42.800508+00:00,TALHAO-03,TALHAO-03,Nao diagnosticada,simulation,filename_hint
+sick 2.jpg,sick 2.jpg,Sick,Indicio de doenca,99.99,0.01,99.99,Sick,True,2026-10-03T20:01:42.800508+00:00,TALHAO-03,TALHAO-03,Nao diagnosticada,simulation,filename_hint
+sick 3.jpg,sick 3.jpg,Sick,Indicio de doenca,100.0,0.0,100.0,Sick,True,2026-10-03T20:00:42.800508+00:00,TALHAO-03,TALHAO-03,Nao diagnosticada,simulation,filename_hint
+sick 4.jpg,sick 4.jpg,Sick,Indicio de doenca,100.0,0.0,100.0,Sick,True,2026-10-03T19:59:42.800508+00:00,TALHAO-03,TALHAO-03,Nao diagnosticada,simulation,filename_hint
+sick 5.jpg,sick 5.jpg,Sick,Indicio de doenca,99.99,0.01,99.99,Sick,True,2026-10-03T19:58:42.800508+00:00,TALHAO-03,TALHAO-03,Nao diagnosticada,simulation,filename_hint
+sick 6.jpg,sick 6.jpg,Sick,Indicio de doenca,100.0,0.0,100.0,Sick,True,2026-10-03T19:57:42.800508+00:00,TALHAO-03,TALHAO-03,Nao diagnosticada,simulation,filename_hint

@@ -1,39 +1,37 @@
 {
-  "attention_level": "medium",
+  "attention_level": "normal",
   "calculation_period": {
-    "end": "2026-10-31T22:52:06.529036Z",
+    "end": "2026-10-31T22:59:53.740538Z",
     "start": "2026-10-31T21:32:37.618972Z"
   },
   "crop": "tomato",
   "decision_basis": "latest_reading",
-  "decision_reasons": [
-    "Umidade do solo (%): 12.5 fora de 25 a 70"
-  ],
+  "decision_reasons": [],
   "field_id": "TALHAO-01",
   "latest_image_analysis": null,
   "latest_reading": {
-    "air_humidity_percent": 67.5,
-    "air_temperature_celsius": 23.5,
-    "event_id": "evt-63492837-fd0b-4881-b235-b409f6c84273",
-    "event_timestamp": "2026-10-31T22:52:06.529036Z",
+    "air_humidity_percent": 71.92,
+    "air_temperature_celsius": 20.75,
+    "event_id": "evt-f4531a35-c28a-4825-8fa2-02a100148930",
+    "event_timestamp": "2026-10-31T22:59:53.740538Z",
     "field_id": "TALHAO-01",
-    "ingested_at": "2026-10-31T22:52:06.549088Z",
-    "luminosity_lux": 60000.0,
+    "ingested_at": "2026-10-31T22:59:53.762522Z",
+    "luminosity_lux": 55164.27,
     "schema_version": "1.0",
     "sensor_id": "SENSOR-TALHAO-01",
-    "simulation_scenario": "dry",
-    "soil_moisture_percent": 12.5,
+    "simulation_scenario": "random",
+    "soil_moisture_percent": 44.54,
     "source": "kafka"
   },
-  "recommendation": "Recomendacao: verificar irrigacao do talhao.",
+  "recommendation": "Condicoes dentro da faixa esperada. Manter monitoramento.",
   "sensor_summary": {
-    "average_air_humidity_percent": 67.34,
-    "average_air_temperature_celsius": 27.73,
-    "average_luminosity_lux": 60502.75,
-    "average_soil_moisture_percent": 40.29,
-    "last_reading_at": "2026-10-31T22:52:06.529036Z",
-    "readings_count": 684
+    "average_air_humidity_percent": 67.4,
+    "average_air_temperature_celsius": 27.64,
+    "average_luminosity_lux": 60126.32,
+    "average_soil_moisture_percent": 40.07,
+    "last_reading_at": "2026-10-31T22:59:53.740538Z",
+    "readings_count": 760
   },
-  "updated_at": "2026-10-31T22:52:09.938918Z",
+  "updated_at": "2026-10-31T22:59:59.171876Z",
   "window_hours": 24
 }

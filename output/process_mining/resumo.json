@@ -1,0 +1,113 @@
+{
+  "periodo": {
+    "inicio": "2026-10-31 21:32:37.619016+00:00",
+    "fim": "2026-10-31 21:54:54.353560+00:00"
+  },
+  "eventos": 5500,
+  "casos": 662,
+  "atividades": [
+    "Alerta emitido",
+    "Consolidada na refined",
+    "Decisao gerada",
+    "Descartada (duplicada)",
+    "Gravada na raw",
+    "Gravada na trusted",
+    "Leitura gerada",
+    "Publicada no Kafka",
+    "Recebida pelo consumer",
+    "Reenvio (duplicata)",
+    "Rejeitada (validacao)",
+    "Validada"
+  ],
+  "variantes": 13,
+  "caminho_feliz_pct": 92.0,
+  "resultados": {
+    "Aceita sem alerta": 433,
+    "Aceita com alerta": 173,
+    "Rejeitada na validacao": 31,
+    "Aceita sem alerta + reenvio": 18,
+    "Aceita com alerta + reenvio": 6,
+    "Incompleto": 1
+  },
+  "reenvios": 24,
+  "taxa_alerta_pct": 28.4,
+  "leituras_fora_da_faixa": 179,
+  "alertas_mascarados": 0,
+  "alertas_mascarados_pct": 0.0,
+  "recebidas_antes_do_ack": 8,
+  "casos_incompletos": 1,
+  "alerta_por_cenario": {
+    "dry": {
+      "casos": 71,
+      "alerta_pct": 100.0
+    },
+    "high": {
+      "casos": 54,
+      "alerta_pct": 100.0
+    },
+    "hot": {
+      "casos": 54,
+      "alerta_pct": 100.0
+    },
+    "normal": {
+      "casos": 267,
+      "alerta_pct": 0.0
+    },
+    "random": {
+      "casos": 184,
+      "alerta_pct": 0.0
+    }
+  },
+  "alerta_por_talhao": {
+    "TALHAO-01": {
+      "casos": 221,
+      "alerta_pct": 27.1
+    },
+    "TALHAO-02": {
+      "casos": 221,
+      "alerta_pct": 27.1
+    },
+    "TALHAO-03": {
+      "casos": 220,
+      "alerta_pct": 26.8
+    }
+  },
+  "gargalos": [
+    {
+      "de": "Gravada na trusted",
+      "para": "Consolidada na refined",
+      "mediana_s": 2.8496,
+      "p95_s": 5.327,
+      "ocorrencias": 615
+    },
+    {
+      "de": "Recebida pelo consumer",
+      "para": "Gravada na raw",
+      "mediana_s": 0.0124,
+      "p95_s": 0.0316,
+      "ocorrencias": 678
+    },
+    {
+      "de": "Gravada na raw",
+      "para": "Rejeitada (validacao)",
+      "mediana_s": 0.0118,
+      "p95_s": 0.045,
+      "ocorrencias": 31
+    }
+  ],
+  "lead_time": {
+    "media_s": 2.929,
+    "mediana_s": 2.897,
+    "p95_s": 5.389,
+    "participacao_pct": {
+      "geracao_publicacao_s": 0.2,
+      "transito_kafka_s": 0.2,
+      "validacao_gravacao_s": 1.0,
+      "espera_micro_lote_s": 98.5,
+      "decisao_s": 0.0
+    }
+  },
+  "observacoes": [
+    "fitness_modelo_filtrado=0.990"
+  ]
+}
